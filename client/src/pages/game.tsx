@@ -53,12 +53,7 @@ export default function Game() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(answerData),
       }).then(res => res.json()),
-    onSuccess: (data, variables) => {
-      // Only invalidate words query if the answer was correct (to remove it from future questions)
-      if (variables.isCorrect) {
-        queryClient.invalidateQueries({ queryKey: ["/api/words", sessionId] });
-      }
-    },
+    // Remove onSuccess to prevent query invalidation that causes re-renders
   });
 
   const handlePictureSelect = (word: Word, isCorrect: boolean) => {
@@ -90,6 +85,9 @@ export default function Game() {
   const handleNextWord = () => {
     setShowCelebration(false);
     setSelectedPicture(null);
+    
+    // Invalidate words query to get updated list (after celebration is done)
+    queryClient.invalidateQueries({ queryKey: ["/api/words", sessionId] });
     
     if (currentWordIndex + 1 >= words.length) {
       setGameCompleted(true);
@@ -227,6 +225,7 @@ export default function Game() {
       </main>
 
       <CelebrationOverlay
+        key={`celebration-${currentWord?.id}-${correctAnswers}`}
         isVisible={showCelebration}
         onNext={handleNextWord}
       />
