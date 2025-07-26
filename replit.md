@@ -113,7 +113,8 @@ The project uses a monorepo structure with shared types and schemas:
 - **Clickable Letters**: Each letter plays pronunciation sound
 - **Picture Matching**: Visual word-to-image association
 - **Celebration Animations**: Positive reinforcement for correct answers
-- **Error Handling**: Encouraging "try again" feedback
+- **Error Handling**: Gentle audio feedback without text interruptions
+- **Persistent Sessions**: Progress saved across page reloads using localStorage
 
 ### Accessibility
 - **Keyboard Navigation**: Full keyboard support for interactions

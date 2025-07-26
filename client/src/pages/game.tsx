@@ -15,7 +15,17 @@ export default function Game() {
   const [showCelebration, setShowCelebration] = useState(false);
   const [gameCompleted, setGameCompleted] = useState(false);
   const [selectedPicture, setSelectedPicture] = useState<Word | null>(null);
-  const [sessionId] = useState(() => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
+  const [sessionId] = useState(() => {
+    // Check if we have a session ID in localStorage
+    const stored = localStorage.getItem('russian-game-session');
+    if (stored) {
+      return stored;
+    }
+    // Create new session ID and store it
+    const newSessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    localStorage.setItem('russian-game-session', newSessionId);
+    return newSessionId;
+  });
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -100,6 +110,13 @@ export default function Game() {
     setSelectedPicture(null);
   };
 
+  const handleResetProgress = () => {
+    // Clear the session from localStorage to start fresh
+    localStorage.removeItem('russian-game-session');
+    // Reload the page to get a new session
+    window.location.reload();
+  };
+
   if (wordsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -168,6 +185,7 @@ export default function Game() {
         totalWords={words.length}
         correctAnswers={correctAnswers}
         onSettingsClick={handleSettingsClick}
+        onResetProgress={handleResetProgress}
       />
 
       <main className="max-w-6xl mx-auto px-4 pb-8">

@@ -5,9 +5,10 @@ interface GameHeaderProps {
   totalWords: number;
   correctAnswers: number;
   onSettingsClick: () => void;
+  onResetProgress?: () => void;
 }
 
-export function GameHeader({ currentWordIndex, totalWords, correctAnswers, onSettingsClick }: GameHeaderProps) {
+export function GameHeader({ currentWordIndex, totalWords, correctAnswers, onSettingsClick, onResetProgress }: GameHeaderProps) {
   const progressPercentage = (currentWordIndex / totalWords) * 100;
 
   return (
@@ -32,12 +33,23 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswers, onSet
           </span>
         </div>
         
-        <button 
-          onClick={onSettingsClick}
-          className="bg-accent hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded-full transition-colors duration-200"
-        >
-          ⚙️ Настройки
-        </button>
+        <div className="flex space-x-2">
+          {onResetProgress && (
+            <button 
+              onClick={onResetProgress}
+              className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-3 rounded-full transition-colors duration-200 text-sm"
+              title="Сбросить прогресс"
+            >
+              🔄
+            </button>
+          )}
+          <button 
+            onClick={onSettingsClick}
+            className="bg-accent hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded-full transition-colors duration-200"
+          >
+            ⚙️ Настройки
+          </button>
+        </div>
       </div>
     </header>
   );
