@@ -74,8 +74,10 @@ The project uses a monorepo structure with shared types and schemas:
 - **shadcn/ui**: Pre-built component library
 
 ### Audio System
-- **Web Speech API**: Browser-native Russian text-to-speech
-- **Fallback Strategy**: Graceful degradation when speech synthesis unavailable
+- **Custom Audio Support**: Load your own MP3/WAV files for letter pronunciation
+- **Web Speech API**: Browser-native Russian text-to-speech fallback
+- **Audio File Structure**: `/client/public/audio/letters/` for custom letter sounds
+- **Fallback Strategy**: Uses Web Speech API when custom files unavailable
 
 ## Deployment Strategy
 
