@@ -13,8 +13,15 @@ export function CelebrationOverlay({ isVisible, onNext }: CelebrationOverlayProp
   useEffect(() => {
     if (isVisible) {
       playApplause();
+      
+      // Automatically advance to next word after 2.5 seconds
+      const timer = setTimeout(() => {
+        onNext();
+      }, 2500);
+      
+      return () => clearTimeout(timer);
     }
-  }, [isVisible, playApplause]);
+  }, [isVisible, playApplause, onNext]);
 
   return (
     <AnimatePresence>
@@ -126,14 +133,13 @@ export function CelebrationOverlay({ isVisible, onNext }: CelebrationOverlayProp
                 ))}
               </div>
               
-              <motion.button
-                onClick={onNext}
-                className="bg-primary hover:bg-purple-700 text-white font-bold py-4 px-8 rounded-full text-xl transition-colors duration-200"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <motion.div
+                className="text-lg text-gray-600 mt-4"
+                animate={{ opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
               >
-                Следующее слово! 🚀
-              </motion.button>
+                Переходим к следующему слову...
+              </motion.div>
             </motion.div>
           </div>
         </motion.div>
