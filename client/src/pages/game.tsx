@@ -98,7 +98,15 @@ export default function Game() {
   const handleSettingsClick = () => {
     toast({
       title: "Настройки 🔧",
-      description: "Настройки будут доступны в следующей версии!",
+      description: "Чтобы сбросить прогресс и начать заново, нажмите здесь",
+      action: (
+        <button
+          onClick={handleResetProgress}
+          className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded text-sm"
+        >
+          Сбросить прогресс
+        </button>
+      ),
     });
   };
 
@@ -185,7 +193,6 @@ export default function Game() {
         totalWords={words.length}
         correctAnswers={correctAnswers}
         onSettingsClick={handleSettingsClick}
-        onResetProgress={handleResetProgress}
       />
 
       <main className="max-w-6xl mx-auto px-4 pb-8">
