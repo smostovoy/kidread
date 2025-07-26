@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { type Word } from "@shared/schema";
+import { type Word, type GameType } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { GameHeader } from "@/components/GameHeader";
+import { GameMenu } from "@/components/GameMenu";
 import { WordDisplay } from "@/components/WordDisplay";
 import { PictureGrid } from "@/components/PictureGrid";
+import { MissingLetterGame } from "@/components/MissingLetterGame";
 import { CelebrationOverlay } from "@/components/CelebrationOverlay";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
@@ -15,6 +17,7 @@ export default function Game() {
   const [showCelebration, setShowCelebration] = useState(false);
   const [gameCompleted, setGameCompleted] = useState(false);
   const [selectedPicture, setSelectedPicture] = useState<Word | null>(null);
+  const [gameType, setGameType] = useState<GameType>('picture-match');
   const [sessionId] = useState(() => {
     // Check if we have a session ID in localStorage
     const stored = localStorage.getItem('russian-game-session');
@@ -39,10 +42,20 @@ export default function Game() {
   // Get current word
   const currentWord = words[currentWordIndex];
 
-  // Fetch distractors for current word
+  // Fetch distractors for current word (picture-match mode)
   const { data: distractors = [], isLoading: distractorsLoading } = useQuery<Word[]>({
     queryKey: ["/api/words", currentWord?.id, "distractors"],
-    enabled: !!currentWord?.id,
+    enabled: !!currentWord?.id && gameType === 'picture-match',
+  });
+
+  // Fetch letter options for current word (missing-letter mode)
+  const { data: letterData, isLoading: letterOptionsLoading } = useQuery<{
+    letterOptions: string[];
+    missingLetterIndex: number;
+    correctLetter: string;
+  }>({
+    queryKey: ["/api/words", currentWord?.id, "letter-options"],
+    enabled: !!currentWord?.id && gameType === 'missing-letter',
   });
 
   // Mutation to record user answers
@@ -61,6 +74,32 @@ export default function Game() {
     if (selectedPicture || showCelebration) return;
     
     setSelectedPicture(word);
+    
+    // Record the answer in the database
+    if (currentWord) {
+      recordAnswerMutation.mutate({
+        wordId: currentWord.id,
+        isCorrect,
+        sessionId,
+      });
+    }
+    
+    if (isCorrect) {
+      setCorrectAnswers(prev => prev + 1);
+      setShowCelebration(true);
+    } else {
+      // Reset selection after a moment
+      setTimeout(() => {
+        setSelectedPicture(null);
+      }, 1500);
+    }
+  };
+
+  const handleLetterSelect = (letter: string, isCorrect: boolean) => {
+    // Prevent multiple selections while processing
+    if (selectedPicture || showCelebration) return;
+    
+    setSelectedPicture({ id: letter, word: letter, image: '', audio: '' } as Word);
     
     // Record the answer in the database
     if (currentWord) {
@@ -126,6 +165,12 @@ export default function Game() {
     window.location.reload();
   };
 
+  const handleGameTypeChange = (newGameType: GameType) => {
+    setGameType(newGameType);
+    setSelectedPicture(null);
+    setShowCelebration(false);
+  };
+
   if (wordsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -176,7 +221,7 @@ export default function Game() {
     );
   }
 
-  if (!currentWord || distractorsLoading) {
+  if (!currentWord || (gameType === 'picture-match' && distractorsLoading) || (gameType === 'missing-letter' && letterOptionsLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -197,31 +242,50 @@ export default function Game() {
       />
 
       <main className="max-w-6xl mx-auto px-4 pb-8">
-        <WordDisplay word={currentWord.word} />
-        
-        <PictureGrid
-          correctWord={currentWord}
-          distractors={distractors}
-          onPictureSelect={handlePictureSelect}
-          disabled={!!selectedPicture || showCelebration}
+        <GameMenu 
+          currentGameType={gameType}
+          onGameTypeChange={handleGameTypeChange}
         />
 
-        <div className="text-center mt-8">
-          <motion.div
-            className="text-6xl"
-            animate={{ 
-              rotate: [-10, 10, -10],
-              scale: [1, 1.1, 1]
-            }}
-            transition={{ 
-              duration: 2, 
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          >
-            👆
-          </motion.div>
-        </div>
+        {gameType === 'picture-match' && (
+          <>
+            <WordDisplay word={currentWord.word} />
+            
+            <PictureGrid
+              correctWord={currentWord}
+              distractors={distractors}
+              onPictureSelect={handlePictureSelect}
+              disabled={!!selectedPicture || showCelebration}
+            />
+
+            <div className="text-center mt-8">
+              <motion.div
+                className="text-6xl"
+                animate={{ 
+                  rotate: [-10, 10, -10],
+                  scale: [1, 1.1, 1]
+                }}
+                transition={{ 
+                  duration: 2, 
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              >
+                👆
+              </motion.div>
+            </div>
+          </>
+        )}
+
+        {gameType === 'missing-letter' && letterData && (
+          <MissingLetterGame
+            word={currentWord}
+            letterOptions={letterData.letterOptions}
+            missingLetterIndex={letterData.missingLetterIndex}
+            onLetterSelect={handleLetterSelect}
+            disabled={!!selectedPicture || showCelebration}
+          />
+        )}
       </main>
 
       <CelebrationOverlay

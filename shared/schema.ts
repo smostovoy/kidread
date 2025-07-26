@@ -45,6 +45,9 @@ export type GameProgress = typeof gameProgress.$inferSelect;
 export type InsertUserAnswer = z.infer<typeof insertUserAnswerSchema>;
 export type UserAnswer = typeof userAnswers.$inferSelect;
 
+// Game types
+export type GameType = 'picture-match' | 'missing-letter';
+
 // Letter audio mapping for Russian alphabet
 export const RUSSIAN_LETTERS = {
   'А': 'a', 'Б': 'b', 'В': 'v', 'Г': 'g', 'Д': 'd', 'Е': 'e', 'Ё': 'yo',

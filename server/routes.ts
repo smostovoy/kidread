@@ -41,6 +41,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get letter options for missing letter game
+  app.get("/api/words/:id/letter-options", async (req, res) => {
+    try {
+      const word = await storage.getWord(req.params.id);
+      if (!word) {
+        return res.status(404).json({ message: "Word not found" });
+      }
+      
+      const wordText = word.word;
+      const russianLetters = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ';
+      
+      // Choose a random position to remove (not first or last position for easier gameplay)
+      const missingLetterIndex = Math.floor(Math.random() * (wordText.length - 2)) + 1;
+      const correctLetter = wordText[missingLetterIndex];
+      
+      // Generate 3 random incorrect letters that are not in the word
+      const wordLetters = new Set(wordText.split(''));
+      const availableLetters = russianLetters.split('').filter(letter => !wordLetters.has(letter));
+      const incorrectLetters = availableLetters
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 3);
+      
+      // Combine correct and incorrect letters, then shuffle
+      const allOptions = [correctLetter, ...incorrectLetters]
+        .sort(() => Math.random() - 0.5);
+      
+      res.json({
+        letterOptions: allOptions,
+        missingLetterIndex,
+        correctLetter
+      });
+    } catch (error) {
+      console.error("Error getting letter options:", error);
+      res.status(500).json({ message: "Failed to get letter options" });
+    }
+  });
+
   // Create game progress
   app.post("/api/game-progress", async (req, res) => {
     try {
