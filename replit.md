@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a child-friendly Russian reading game built with React, TypeScript, Express.js, and Drizzle ORM. The app teaches children to read Russian words by matching them with corresponding pictures. It features an interactive game interface with audio pronunciation, visual feedback, and progress tracking.
+This is a child-friendly Russian reading game built with React, TypeScript, Express.js, and Drizzle ORM. The app teaches children to read Russian words by matching them with corresponding pictures. It features an interactive game interface with audio pronunciation, visual feedback, and progress tracking. The game now includes 40 common Russian words with emoji-based picture representations.
 
 ## User Preferences
 
@@ -44,7 +44,7 @@ The project uses a monorepo structure with shared types and schemas:
 - **Development Server**: Integrated Vite development server with HMR
 
 ### Database Schema
-- **Words Table**: Stores Russian words with associated images and audio files
+- **Words Table**: Stores 40 Russian words including simple nouns like animals, household items, nature elements, and transportation
 - **Game Progress Table**: Tracks user progress through game sessions
 - **Shared Types**: TypeScript interfaces generated from Drizzle schemas
 
