@@ -65,13 +65,6 @@ export default function Game() {
       setCorrectAnswers(prev => prev + 1);
       setShowCelebration(true);
     } else {
-      // Visual feedback for wrong answer
-      toast({
-        title: "Попробуй ещё раз! 🤔",
-        description: "Это не правильная картинка. Внимательно прочитай слово.",
-        variant: "destructive",
-      });
-      
       // Reset selection after a moment
       setTimeout(() => {
         setSelectedPicture(null);

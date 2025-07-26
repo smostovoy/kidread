@@ -57,12 +57,36 @@ export function useAudio() {
 
   const playTryAgain = useCallback(() => {
     try {
-      const utterance = new SpeechSynthesisUtterance('Попробуй ещё раз');
-      utterance.lang = 'ru-RU';
-      utterance.rate = 0.8;
-      speechSynthesis.speak(utterance);
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      
+      // Create a gentle "try again" sound - descending notes
+      const duration = 0.6;
+      const sampleRate = audioContext.sampleRate;
+      const buffer = audioContext.createBuffer(1, duration * sampleRate, sampleRate);
+      const data = buffer.getChannelData(0);
+      
+      // Generate a gentle descending sound
+      for (let i = 0; i < data.length; i++) {
+        const time = i / sampleRate;
+        let sample = 0;
+        
+        // Two descending tones: G4 to E4 (gentle disappointment)
+        if (time < 0.3) {
+          sample += Math.sin(2 * Math.PI * 392 * time) * Math.exp(-time * 4) * 0.2; // G4
+        }
+        if (time >= 0.2 && time < 0.6) {
+          sample += Math.sin(2 * Math.PI * 329.63 * (time - 0.2)) * Math.exp(-(time - 0.2) * 4) * 0.2; // E4
+        }
+        
+        data[i] = sample;
+      }
+      
+      const source = audioContext.createBufferSource();
+      source.buffer = buffer;
+      source.connect(audioContext.destination);
+      source.start();
     } catch (error) {
-      console.warn('Speech synthesis not available:', error);
+      console.warn('Web Audio API not available:', error);
     }
   }, []);
 
