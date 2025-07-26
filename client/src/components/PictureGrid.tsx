@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 import { type Word } from "@shared/schema";
 import { useAudio } from "@/hooks/useAudio";
 
@@ -54,9 +55,19 @@ const PICTURE_EMOJIS: Record<string, string> = {
 
 export function PictureGrid({ correctWord, distractors, onPictureSelect, disabled }: PictureGridProps) {
   const { playTryAgain } = useAudio();
+  const [shuffledOptions, setShuffledOptions] = useState<Word[]>([]);
   
-  // Combine correct word with distractors and shuffle
-  const allOptions = [correctWord, ...distractors].sort(() => Math.random() - 0.5);
+  // Shuffle options only when correctWord or distractors change
+  useEffect(() => {
+    if (correctWord && distractors.length > 0) {
+      const allOptions = [correctWord, ...distractors];
+      const shuffled = [...allOptions].sort(() => Math.random() - 0.5);
+      setShuffledOptions(shuffled);
+    }
+  }, [correctWord.id, distractors.map(d => d.id).join(',')]);
+  
+  // Use shuffled options
+  const allOptions = shuffledOptions.length > 0 ? shuffledOptions : [correctWord, ...distractors];
 
   const handlePictureClick = (word: Word) => {
     if (disabled) return;

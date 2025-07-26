@@ -43,9 +43,11 @@ export default function Game() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(answerData),
       }).then(res => res.json()),
-    onSuccess: () => {
-      // Invalidate words query to get updated available words list
-      queryClient.invalidateQueries({ queryKey: ["/api/words", sessionId] });
+    onSuccess: (data, variables) => {
+      // Only invalidate words query if the answer was correct (to remove it from future questions)
+      if (variables.isCorrect) {
+        queryClient.invalidateQueries({ queryKey: ["/api/words", sessionId] });
+      }
     },
   });
 
