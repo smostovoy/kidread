@@ -186,13 +186,20 @@ export default function Game() {
         />
 
         <div className="text-center mt-8">
-          <motion.p 
-            className="text-2xl font-semibold text-child-text"
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
+          <motion.div
+            className="text-6xl"
+            animate={{ 
+              rotate: [-10, 10, -10],
+              scale: [1, 1.1, 1]
+            }}
+            transition={{ 
+              duration: 2, 
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
           >
-            Нажми на правильную картинку! 🌟
-          </motion.p>
+            👉
+          </motion.div>
         </div>
       </main>
 
