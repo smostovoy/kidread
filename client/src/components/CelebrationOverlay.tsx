@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useAudio } from "@/hooks/useAudio";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 interface CelebrationOverlayProps {
   isVisible: boolean;
@@ -9,17 +9,25 @@ interface CelebrationOverlayProps {
 
 export function CelebrationOverlay({ isVisible, onNext }: CelebrationOverlayProps) {
   const { playApplause } = useAudio();
+  const hasPlayedSound = useRef(false);
 
   useEffect(() => {
     if (isVisible) {
-      playApplause();
+      // Only play sound once per celebration
+      if (!hasPlayedSound.current) {
+        playApplause();
+        hasPlayedSound.current = true;
+      }
       
-      // Automatically advance to next word after 2.5 seconds
+      // Automatically advance to next word after 1.5 seconds (faster)
       const timer = setTimeout(() => {
         onNext();
-      }, 2500);
+      }, 1500);
       
       return () => clearTimeout(timer);
+    } else {
+      // Reset sound flag when celebration is hidden
+      hasPlayedSound.current = false;
     }
   }, [isVisible, playApplause, onNext]);
 
