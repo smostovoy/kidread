@@ -62,6 +62,9 @@ export default function Game() {
   });
 
   const handlePictureSelect = (word: Word, isCorrect: boolean) => {
+    // Prevent multiple selections while processing
+    if (selectedPicture || showCelebration) return;
+    
     setSelectedPicture(word);
     
     // Record the answer in the database

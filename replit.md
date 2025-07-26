@@ -112,9 +112,10 @@ The project uses a monorepo structure with shared types and schemas:
 ### Interactive Elements
 - **Clickable Letters**: Each letter plays pronunciation sound
 - **Picture Matching**: Visual word-to-image association
-- **Celebration Animations**: Positive reinforcement for correct answers
+- **Celebration Animations**: Positive reinforcement for correct answers with auto-progression
 - **Error Handling**: Gentle audio feedback without text interruptions
 - **Persistent Sessions**: Progress saved across page reloads using localStorage
+- **Automatic Flow**: Game automatically advances to next word after celebration
 
 ### Accessibility
 - **Keyboard Navigation**: Full keyboard support for interactions
