@@ -1,6 +1,6 @@
 import { type Word, type InsertWord, type GameProgress, type InsertGameProgress, type UserAnswer, type InsertUserAnswer, words, userAnswers } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, gt, sql } from "drizzle-orm";
+import { eq, and, gt, sql, notInArray } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -125,6 +125,8 @@ export class DatabaseStorage implements IStorage {
     const oneMonthAgo = new Date();
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
+    console.log(`Getting correct answers for sessionId: ${sessionId}`);
+
     const correctAnswers = await db
       .select({ wordId: userAnswers.wordId })
       .from(userAnswers)
@@ -136,6 +138,7 @@ export class DatabaseStorage implements IStorage {
         )
       );
 
+    console.log(`Found ${correctAnswers.length} correct answers:`, correctAnswers.map(a => a.wordId));
     return correctAnswers.map(answer => answer.wordId);
   }
 
@@ -145,15 +148,18 @@ export class DatabaseStorage implements IStorage {
     const correctWordIds = await this.getCorrectAnswersInLastMonth(sessionId);
     
     if (correctWordIds.length === 0) {
+      console.log(`No correct answers found, returning all words`);
       return await this.getAllWords();
     }
 
+    console.log(`Filtering out ${correctWordIds.length} correctly answered words`);
     // Get words that haven't been answered correctly in the last month
     const availableWords = await db
       .select()
       .from(words)
-      .where(sql`${words.id} NOT IN (${correctWordIds.map(id => `'${id}'`).join(', ')})`);
+      .where(notInArray(words.id, correctWordIds));
 
+    console.log(`Available words count: ${availableWords.length}`);
     return availableWords;
   }
 
