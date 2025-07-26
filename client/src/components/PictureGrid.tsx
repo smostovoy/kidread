@@ -16,7 +16,7 @@ const PICTURE_EMOJIS: Record<string, string> = {
   'house': '🏠',
   'ball': '⚽',
   'fox': '🦊',
-  'table': '🪑',
+  'table': '🍽️',
   'fish': '🐟',
   'dog': '🐕',
   'flower': '🌸',
