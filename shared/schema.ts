@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -17,6 +17,14 @@ export const gameProgress = pgTable("game_progress", {
   totalQuestions: integer("total_questions").notNull().default(10),
 });
 
+export const userAnswers = pgTable("user_answers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  wordId: varchar("word_id").notNull(),
+  isCorrect: boolean("is_correct").default(false),
+  answeredAt: timestamp("answered_at", { withTimezone: true }).default(sql`now()`),
+  sessionId: varchar("session_id").notNull(),
+});
+
 export const insertWordSchema = createInsertSchema(words).omit({
   id: true,
 });
@@ -25,10 +33,17 @@ export const insertGameProgressSchema = createInsertSchema(gameProgress).omit({
   id: true,
 });
 
+export const insertUserAnswerSchema = createInsertSchema(userAnswers).omit({
+  id: true,
+  answeredAt: true,
+});
+
 export type InsertWord = z.infer<typeof insertWordSchema>;
 export type Word = typeof words.$inferSelect;
 export type InsertGameProgress = z.infer<typeof insertGameProgressSchema>;
 export type GameProgress = typeof gameProgress.$inferSelect;
+export type InsertUserAnswer = z.infer<typeof insertUserAnswerSchema>;
+export type UserAnswer = typeof userAnswers.$inferSelect;
 
 // Letter audio mapping for Russian alphabet
 export const RUSSIAN_LETTERS = {

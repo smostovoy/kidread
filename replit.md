@@ -39,12 +39,13 @@ The project uses a monorepo structure with shared types and schemas:
 
 ### Backend Architecture
 - **Express Server**: RESTful API with middleware for logging and error handling
-- **Storage Layer**: Abstracted storage interface with in-memory implementation
-- **Route Handlers**: CRUD operations for words and game progress
+- **Storage Layer**: PostgreSQL database with Drizzle ORM for persistent storage
+- **Route Handlers**: CRUD operations for words, game progress, and answer tracking
 - **Development Server**: Integrated Vite development server with HMR
 
 ### Database Schema
 - **Words Table**: Stores 40 Russian words including simple nouns like animals, household items, nature elements, and transportation
+- **User Answers Table**: Tracks all user answers with timestamps for monthly filtering
 - **Game Progress Table**: Tracks user progress through game sessions
 - **Shared Types**: TypeScript interfaces generated from Drizzle schemas
 
@@ -106,6 +107,7 @@ The project uses a monorepo structure with shared types and schemas:
 - **Russian Language Support**: Cyrillic characters with phonetic audio
 - **Progressive Difficulty**: Starts with simple 3-letter words
 - **Immediate Feedback**: Visual and audio responses to user actions
+- **Smart Progression**: Words answered correctly are excluded for 30 days to focus on challenging vocabulary
 
 ### Interactive Elements
 - **Clickable Letters**: Each letter plays pronunciation sound

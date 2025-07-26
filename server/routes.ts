@@ -1,16 +1,18 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertGameProgressSchema } from "@shared/schema";
+import { insertGameProgressSchema, insertUserAnswerSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Get all words
+  // Get available words (excluding correctly answered ones in last month)
   app.get("/api/words", async (req, res) => {
     try {
-      const words = await storage.getAllWords();
+      const sessionId = req.query.sessionId as string || 'default-session';
+      const words = await storage.getAvailableWords(sessionId);
       res.json(words);
     } catch (error) {
+      console.error("Error fetching words:", error);
       res.status(500).json({ message: "Failed to fetch words" });
     }
   });
@@ -77,6 +79,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(progress);
     } catch (error) {
       res.status(500).json({ message: "Failed to update game progress" });
+    }
+  });
+
+  // Record user answer
+  app.post("/api/answers", async (req, res) => {
+    try {
+      const validatedData = insertUserAnswerSchema.parse(req.body);
+      const answer = await storage.recordAnswer(validatedData);
+      res.status(201).json(answer);
+    } catch (error) {
+      console.error("Error recording answer:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid answer data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to record answer" });
     }
   });
 

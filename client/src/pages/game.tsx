@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { type Word } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
 import { GameHeader } from "@/components/GameHeader";
 import { WordDisplay } from "@/components/WordDisplay";
 import { PictureGrid } from "@/components/PictureGrid";
@@ -14,13 +15,15 @@ export default function Game() {
   const [showCelebration, setShowCelebration] = useState(false);
   const [gameCompleted, setGameCompleted] = useState(false);
   const [selectedPicture, setSelectedPicture] = useState<Word | null>(null);
+  const [sessionId] = useState(() => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch all words
+  // Fetch available words (excluding correctly answered ones)
   const { data: words = [], isLoading: wordsLoading } = useQuery<Word[]>({
-    queryKey: ["/api/words"],
+    queryKey: ["/api/words", sessionId],
+    queryFn: () => fetch(`/api/words?sessionId=${sessionId}`).then(res => res.json()),
   });
 
   // Get current word
@@ -32,8 +35,31 @@ export default function Game() {
     enabled: !!currentWord?.id,
   });
 
+  // Mutation to record user answers
+  const recordAnswerMutation = useMutation({
+    mutationFn: (answerData: { wordId: string; isCorrect: boolean; sessionId: string }) =>
+      fetch('/api/answers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(answerData),
+      }).then(res => res.json()),
+    onSuccess: () => {
+      // Invalidate words query to get updated available words list
+      queryClient.invalidateQueries({ queryKey: ["/api/words", sessionId] });
+    },
+  });
+
   const handlePictureSelect = (word: Word, isCorrect: boolean) => {
     setSelectedPicture(word);
+    
+    // Record the answer in the database
+    if (currentWord) {
+      recordAnswerMutation.mutate({
+        wordId: currentWord.id,
+        isCorrect,
+        sessionId,
+      });
+    }
     
     if (isCorrect) {
       setCorrectAnswers(prev => prev + 1);
