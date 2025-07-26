@@ -32,7 +32,20 @@ export function GameMenu({ currentGameType, onGameTypeChange }: GameMenuProps) {
             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
         }`}
       >
-        Буквы
+        Найти букву
+      </motion.button>
+      
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={() => onGameTypeChange('extra-letter')}
+        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+          currentGameType === 'extra-letter'
+            ? 'bg-blue-500 text-white shadow-md'
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+        }`}
+      >
+        Убрать лишнее
       </motion.button>
     </div>
   );

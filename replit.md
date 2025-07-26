@@ -107,7 +107,8 @@ The project uses a monorepo structure with shared types and schemas:
 ### Game Modes
 - **Picture Matching Mode**: Classic word-to-picture matching with emoji representations
 - **Missing Letter Mode**: Fill-in-the-blank style gameplay where children identify missing letters
-- **Game Menu**: Toggle between different game types via top navigation buttons
+- **Extra Letter Mode**: Identify and remove the extra letter inserted into a word
+- **Game Menu**: Toggle between three different game types via top navigation buttons
 
 ### Educational Design
 - **Child-Friendly Interface**: Large buttons, bright colors, emoji icons
@@ -120,6 +121,7 @@ The project uses a monorepo structure with shared types and schemas:
 - **Clickable Letters**: Each letter plays pronunciation sound
 - **Picture Matching**: Visual word-to-image association
 - **Missing Letter Challenges**: Choose correct letter from 4 options to complete words
+- **Extra Letter Removal**: Click on incorrect letters to identify and remove them
 - **Celebration Animations**: Positive reinforcement for correct answers with auto-progression
 - **Error Handling**: Gentle audio feedback without text interruptions
 - **Persistent Sessions**: Progress saved across page reloads using localStorage

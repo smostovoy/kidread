@@ -78,6 +78,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get word with extra letter for extra letter game
+  app.get("/api/words/:id/extra-letter", async (req, res) => {
+    try {
+      const word = await storage.getWord(req.params.id);
+      if (!word) {
+        return res.status(404).json({ message: "Word not found" });
+      }
+      
+      const wordText = word.word;
+      const russianLetters = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ';
+      
+      // Choose a random position to insert extra letter (not at the very beginning or end)
+      const insertPosition = Math.floor(Math.random() * (wordText.length - 1)) + 1;
+      
+      // Generate a random letter that's not in the word
+      const wordLetters = new Set(wordText.split(''));
+      const availableLetters = russianLetters.split('').filter(letter => !wordLetters.has(letter));
+      const extraLetter = availableLetters[Math.floor(Math.random() * availableLetters.length)];
+      
+      // Insert the extra letter
+      const wordArray = wordText.split('');
+      wordArray.splice(insertPosition, 0, extraLetter);
+      const wordWithExtraLetter = wordArray.join('');
+      
+      res.json({
+        wordWithExtraLetter,
+        extraLetterIndex: insertPosition,
+        extraLetter
+      });
+    } catch (error) {
+      console.error("Error getting extra letter word:", error);
+      res.status(500).json({ message: "Failed to get extra letter word" });
+    }
+  });
+
   // Create game progress
   app.post("/api/game-progress", async (req, res) => {
     try {
