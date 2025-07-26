@@ -86,14 +86,11 @@ export function PictureGrid({ correctWord, distractors, onPictureSelect, disable
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: index * 0.1 }}
           >
-            <div className="w-full h-32 flex items-center justify-center rounded-2xl mb-4 bg-gradient-to-br from-blue-50 to-purple-50">
+            <div className="w-full h-32 flex items-center justify-center rounded-2xl bg-gradient-to-br from-blue-50 to-purple-50">
               <span className="text-6xl">
                 {PICTURE_EMOJIS[word.image] || '❓'}
               </span>
             </div>
-            <p className="text-center font-bold text-xl text-child-text">
-              {PICTURE_EMOJIS[word.image] || '❓'}
-            </p>
           </motion.div>
         );
       })}
