@@ -198,7 +198,7 @@ export default function Game() {
               ease: "easeInOut"
             }}
           >
-            👉
+            👆
           </motion.div>
         </div>
       </main>
