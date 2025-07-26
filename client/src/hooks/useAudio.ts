@@ -19,23 +19,31 @@ export function useAudio() {
 
   const playApplause = useCallback(() => {
     try {
-      // Create applause sound effect using Web Audio API
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       
-      // Generate clapping sound
-      const duration = 1.5;
+      // Create a pleasant success sound - ascending musical notes
+      const duration = 0.8;
       const sampleRate = audioContext.sampleRate;
       const buffer = audioContext.createBuffer(1, duration * sampleRate, sampleRate);
       const data = buffer.getChannelData(0);
       
-      // Create applause-like noise bursts
+      // Generate a pleasant "ding" sound with three ascending notes
       for (let i = 0; i < data.length; i++) {
         const time = i / sampleRate;
-        // Multiple noise bursts to simulate clapping
-        const burst1 = Math.random() * 0.3 * Math.exp(-time * 8) * (Math.sin(time * 50) > 0.3 ? 1 : 0);
-        const burst2 = Math.random() * 0.2 * Math.exp(-(time - 0.3) * 6) * (Math.sin((time - 0.3) * 45) > 0.4 ? 1 : 0);
-        const burst3 = Math.random() * 0.15 * Math.exp(-(time - 0.6) * 4) * (Math.sin((time - 0.6) * 40) > 0.5 ? 1 : 0);
-        data[i] = burst1 + burst2 + burst3;
+        let sample = 0;
+        
+        // Three pleasant tones: C5, E5, G5 (major chord)
+        if (time < 0.3) {
+          sample += Math.sin(2 * Math.PI * 523.25 * time) * Math.exp(-time * 3) * 0.3; // C5
+        }
+        if (time >= 0.2 && time < 0.5) {
+          sample += Math.sin(2 * Math.PI * 659.25 * (time - 0.2)) * Math.exp(-(time - 0.2) * 3) * 0.3; // E5
+        }
+        if (time >= 0.4 && time < 0.8) {
+          sample += Math.sin(2 * Math.PI * 783.99 * (time - 0.4)) * Math.exp(-(time - 0.4) * 3) * 0.3; // G5
+        }
+        
+        data[i] = sample;
       }
       
       const source = audioContext.createBufferSource();
@@ -43,21 +51,7 @@ export function useAudio() {
       source.connect(audioContext.destination);
       source.start();
     } catch (error) {
-      console.warn('Web Audio API not available, using fallback sound:', error);
-      // Fallback: create a simple beep sound
-      try {
-        const oscillator = new (window.AudioContext || (window as any).webkitAudioContext)().createOscillator();
-        const gainNode = new (window.AudioContext || (window as any).webkitAudioContext)().createGain();
-        oscillator.connect(gainNode);
-        gainNode.connect(new (window.AudioContext || (window as any).webkitAudioContext)().destination);
-        oscillator.frequency.setValueAtTime(800, 0);
-        gainNode.gain.setValueAtTime(0.3, 0);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, 0.5);
-        oscillator.start();
-        oscillator.stop(0.5);
-      } catch (fallbackError) {
-        console.warn('Audio not available:', fallbackError);
-      }
+      console.warn('Web Audio API not available:', error);
     }
   }, []);
 
