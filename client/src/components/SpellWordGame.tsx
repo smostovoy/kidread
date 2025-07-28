@@ -63,7 +63,8 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
   // Play letter sound from укр folder
   const playUkrLetterSound = (letter: string) => {
     const audio = new Audio(`/audio/укр/${letter}.mp3`);
-    audio.catch(() => {
+    
+    audio.addEventListener('error', () => {
       // Fallback to Web Speech API if file not found
       if ('speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(letter);
@@ -72,6 +73,7 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
         speechSynthesis.speak(utterance);
       }
     });
+
     audio.play().catch(() => {
       // Fallback if audio fails
       if ('speechSynthesis' in window) {
