@@ -60,44 +60,32 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
   const [draggedLetter, setDraggedLetter] = useState<{letter: string, index: number} | null>(null);
   const { playLetterSound } = useAudio();
 
-  // Play letter sound with fallback from укр to рос folder
+  // Play letter sound from рос folder
   const playUkrLetterSound = (letter: string) => {
-    const ukrAudio = new Audio(`/audio/letters/укр/${letter}.mp3`);
-    let fallbackAttempted = false;
+    const audio = new Audio(`/audio/letters/рос/${letter}.mp3`);
     
-    const tryRussianAudio = () => {
-      if (fallbackAttempted) return;
-      fallbackAttempted = true;
-      
-      console.log(`Ukrainian audio not found for letter: ${letter}, trying Russian audio`);
-      const rosAudio = new Audio(`/audio/letters/рос/${letter}.mp3`);
-      
-      rosAudio.addEventListener('error', () => {
-        console.log(`Russian audio not found for letter: ${letter}, using Web Speech API`);
-        if ('speechSynthesis' in window) {
-          const utterance = new SpeechSynthesisUtterance(letter);
-          utterance.lang = 'ru-RU';
-          utterance.rate = 0.7;
-          speechSynthesis.speak(utterance);
-        }
-      });
-      
-      rosAudio.play().catch(() => {
-        if ('speechSynthesis' in window) {
-          const utterance = new SpeechSynthesisUtterance(letter);
-          utterance.lang = 'ru-RU';
-          utterance.rate = 0.7;
-          speechSynthesis.speak(utterance);
-        }
-      });
-    };
+    audio.addEventListener('error', () => {
+      console.log(`Russian audio not found for letter: ${letter}, using Web Speech API`);
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(letter);
+        utterance.lang = 'ru-RU';
+        utterance.rate = 0.7;
+        speechSynthesis.speak(utterance);
+      }
+    });
     
-    ukrAudio.addEventListener('error', tryRussianAudio);
-    ukrAudio.addEventListener('canplaythrough', () => {
-      console.log(`Playing Ukrainian audio for letter: ${letter}`);
+    audio.addEventListener('canplaythrough', () => {
+      console.log(`Playing Russian audio for letter: ${letter}`);
     });
 
-    ukrAudio.play().catch(tryRussianAudio);
+    audio.play().catch(() => {
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(letter);
+        utterance.lang = 'ru-RU';
+        utterance.rate = 0.7;
+        speechSynthesis.speak(utterance);
+      }
+    });
   };
 
   const handleLetterClick = (letter: string) => {
