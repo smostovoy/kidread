@@ -14,16 +14,30 @@ interface MixGameProps {
   disabled: boolean;
 }
 
+const GAME_TYPE_NAMES: Record<Exclude<GameType, 'mix'>, string> = {
+  'picture-match': 'Найди картинку',
+  'missing-letter': 'Найди букву',
+  'extra-letter': 'Убери лишнее',
+  'spell-word': 'Составь слово'
+};
+
+const GAME_TYPE_ICONS: Record<Exclude<GameType, 'mix'>, string> = {
+  'picture-match': '🖼️',
+  'missing-letter': '➕',
+  'extra-letter': '🗑️',
+  'spell-word': '✏️'
+};
+
 export function MixGame({ word, onAnswer, disabled }: MixGameProps) {
   // Randomly select game type for this word
-  const [currentMixType, setCurrentMixType] = useState<GameType>(() => {
-    const gameTypes: GameType[] = ['picture-match', 'missing-letter', 'extra-letter', 'spell-word'];
+  const [currentMixType, setCurrentMixType] = useState<Exclude<GameType, 'mix'>>(() => {
+    const gameTypes: Array<Exclude<GameType, 'mix'>> = ['picture-match', 'missing-letter', 'extra-letter', 'spell-word'];
     return gameTypes[Math.floor(Math.random() * gameTypes.length)];
   });
 
   // Reset game type when word changes
   useEffect(() => {
-    const gameTypes: GameType[] = ['picture-match', 'missing-letter', 'extra-letter', 'spell-word'];
+    const gameTypes: Array<Exclude<GameType, 'mix'>> = ['picture-match', 'missing-letter', 'extra-letter', 'spell-word'];
     setCurrentMixType(gameTypes[Math.floor(Math.random() * gameTypes.length)]);
   }, [word.id]);
 
@@ -96,8 +110,8 @@ export function MixGame({ word, onAnswer, disabled }: MixGameProps) {
           animate={{ scale: 1 }}
           className="inline-flex items-center gap-2 bg-blue-100 rounded-full px-4 py-2"
         >
-          <span className="text-2xl">🎲</span>
-          <span className="text-sm font-medium text-blue-800">Микс режим</span>
+          <span className="text-2xl">{GAME_TYPE_ICONS[currentMixType]}</span>
+          <span className="text-sm font-medium text-blue-800">{GAME_TYPE_NAMES[currentMixType]}</span>
         </motion.div>
       </div>
 
