@@ -124,15 +124,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const wordText = word.word;
       const russianLetters = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ';
       
-      // Get unique letters from the word
-      const wordLetters = Array.from(new Set(wordText.split('')));
+      // Get all letters from the word (including duplicates)
+      const wordLetters = wordText.split('');
       
       // Calculate how many additional letters we need (total should be 10)
       const targetTotal = 10;
       const additionalLettersNeeded = targetTotal - wordLetters.length;
       
       // Generate random letters that are not in the word
-      const availableLetters = russianLetters.split('').filter(letter => !wordLetters.includes(letter));
+      const uniqueWordLetters = new Set(wordLetters);
+      const availableLetters = russianLetters.split('').filter(letter => !uniqueWordLetters.has(letter));
       const additionalLetters = availableLetters
         .sort(() => Math.random() - 0.5)
         .slice(0, Math.max(0, additionalLettersNeeded));
