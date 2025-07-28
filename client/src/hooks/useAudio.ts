@@ -24,40 +24,40 @@ export function useAudio() {
     // Use Russian audio folder for Cyrillic letters
     const customAudioPath = `/audio/letters/рос/${letter.toUpperCase()}.mp3`;
     
-    // Check if custom audio exists
-    fetch(customAudioPath, { method: 'HEAD' })
-      .then(response => {
-        if (response.ok) {
-          console.log(`Playing Russian audio for letter: ${letter}`);
-          playCustomAudio(customAudioPath);
-        } else {
-          console.log(`Russian audio not found for letter: ${letter}, using Web Speech API`);
-          // Fallback to Web Speech API
-          try {
-            const utterance = new SpeechSynthesisUtterance(letter);
-            utterance.lang = 'ru-RU';
-            utterance.rate = 0.7;
-            utterance.pitch = 1.2;
-            speechSynthesis.speak(utterance);
-          } catch (error) {
-            console.warn('Speech synthesis not available:', error);
-          }
-        }
-      })
-      .catch(() => {
-        console.log(`Failed to check audio for letter: ${letter}, using Web Speech API`);
-        // Fallback to Web Speech API
-        try {
-          const utterance = new SpeechSynthesisUtterance(letter);
-          utterance.lang = 'ru-RU';
-          utterance.rate = 0.7;
-          utterance.pitch = 1.2;
-          speechSynthesis.speak(utterance);
-        } catch (error) {
-          console.warn('Speech synthesis not available:', error);
-        }
-      });
-  }, [playCustomAudio]);
+    const audio = new Audio(customAudioPath);
+    
+    audio.addEventListener('error', () => {
+      console.log(`Russian audio not found for letter: ${letter}, using Web Speech API`);
+      // Fallback to Web Speech API
+      try {
+        const utterance = new SpeechSynthesisUtterance(letter);
+        utterance.lang = 'ru-RU';
+        utterance.rate = 0.7;
+        utterance.pitch = 1.2;
+        speechSynthesis.speak(utterance);
+      } catch (error) {
+        console.warn('Speech synthesis not available:', error);
+      }
+    });
+    
+    audio.addEventListener('canplaythrough', () => {
+      console.log(`Playing Russian audio for letter: ${letter}`);
+    });
+
+    audio.play().catch(() => {
+      console.log(`Failed to play audio for letter: ${letter}, using Web Speech API`);
+      // Fallback to Web Speech API
+      try {
+        const utterance = new SpeechSynthesisUtterance(letter);
+        utterance.lang = 'ru-RU';
+        utterance.rate = 0.7;
+        utterance.pitch = 1.2;
+        speechSynthesis.speak(utterance);
+      } catch (error) {
+        console.warn('Speech synthesis not available:', error);
+      }
+    });
+  }, []);
 
   const playApplause = useCallback(() => {
     try {

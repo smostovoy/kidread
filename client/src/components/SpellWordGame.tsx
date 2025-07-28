@@ -60,37 +60,9 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
   const [draggedLetter, setDraggedLetter] = useState<{letter: string, index: number} | null>(null);
   const { playLetterSound } = useAudio();
 
-  // Play letter sound from рос folder
-  const playRusLetterSound = (letter: string) => {
-    const audio = new Audio(`/audio/letters/рос/${letter.toUpperCase()}.mp3`);
-    
-    audio.addEventListener('error', () => {
-      console.log(`Russian audio not found for letter: ${letter}, using Web Speech API`);
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(letter);
-        utterance.lang = 'ru-RU';
-        utterance.rate = 0.7;
-        speechSynthesis.speak(utterance);
-      }
-    });
-    
-    audio.addEventListener('canplaythrough', () => {
-      console.log(`Playing Russian audio for letter: ${letter}`);
-    });
-
-    audio.play().catch(() => {
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(letter);
-        utterance.lang = 'ru-RU';
-        utterance.rate = 0.7;
-        speechSynthesis.speak(utterance);
-      }
-    });
-  };
-
   const handleLetterClick = (letter: string) => {
     if (disabled || showResult) return;
-    playRusLetterSound(letter);
+    playLetterSound(letter);
   };
 
   const handleDragStart = (letter: string, index: number) => {

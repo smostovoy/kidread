@@ -58,34 +58,6 @@ export function ExtraLetterGame({ word, wordWithExtraLetter, extraLetterIndex, o
   const { playLetterSound } = useAudio();
   const [draggedLetter, setDraggedLetter] = useState<{letter: string, index: number} | null>(null);
   
-  // Play letter sound from рос folder
-  const playRussianLetterSound = (letter: string) => {
-    const audio = new Audio(`/audio/letters/рос/${letter}.mp3`);
-    
-    audio.addEventListener('error', () => {
-      console.log(`Russian audio not found for letter: ${letter}, using Web Speech API`);
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(letter);
-        utterance.lang = 'ru-RU';
-        utterance.rate = 0.7;
-        speechSynthesis.speak(utterance);
-      }
-    });
-    
-    audio.addEventListener('canplaythrough', () => {
-      console.log(`Playing Russian audio for letter: ${letter}`);
-    });
-
-    audio.play().catch(() => {
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(letter);
-        utterance.lang = 'ru-RU';
-        utterance.rate = 0.7;
-        speechSynthesis.speak(utterance);
-      }
-    });
-  };
-  
   const wordArray = wordWithExtraLetter.split('');
   const emoji = PICTURE_EMOJIS[word.image] || '❓';
 
@@ -93,7 +65,7 @@ export function ExtraLetterGame({ word, wordWithExtraLetter, extraLetterIndex, o
     if (disabled) return;
     
     const letter = wordArray[letterIndex];
-    playRussianLetterSound(letter);
+    playLetterSound(letter);
   };
 
   const handleDragStart = (letterIndex: number) => {

@@ -79,10 +79,10 @@ The project uses a monorepo structure with shared types and schemas:
 - **shadcn/ui**: Pre-built component library
 
 ### Audio System
-- **Custom Audio Support**: Load your own MP3/WAV files for letter pronunciation
-- **Web Speech API**: Browser-native Russian text-to-speech fallback
-- **Audio File Structure**: `/client/public/audio/letters/` for custom letter sounds
-- **Fallback Strategy**: Uses Web Speech API when custom files unavailable
+- **Unified Audio Function**: Single `playLetterSound` function in `useAudio` hook used across all games
+- **Russian Audio Files**: Located in `/client/public/audio/letters/рос/` with uppercase filenames (А.mp3, Б.mp3, etc.)
+- **Web Speech API Fallback**: Browser-native Russian text-to-speech when audio files unavailable
+- **Consistent Implementation**: All games use the same audio logic for letter pronunciation
 
 ## Deployment Strategy
 
