@@ -92,18 +92,7 @@ export function MixGame({ word, onAnswer, disabled }: MixGameProps) {
     onAnswer(isCorrect);
   };
 
-  // Show loading if data is still loading
-  if ((currentMixType === 'picture-match' && distractorsLoading) ||
-      (currentMixType === 'missing-letter' && letterOptionsLoading) ||
-      (currentMixType === 'extra-letter' && extraLetterLoading) ||
-      (currentMixType === 'spell-word' && spellLettersLoading)) {
-    return (
-      <div className="text-center">
-        <div className="text-4xl mb-4">⏳</div>
-        <p className="text-xl text-child-text">Подготавливаем задание...</p>
-      </div>
-    );
-  }
+
 
   return (
     <div>
@@ -123,12 +112,19 @@ export function MixGame({ word, onAnswer, disabled }: MixGameProps) {
         <>
           <WordDisplay word={word.word} />
           
-          <PictureGrid
-            correctWord={word}
-            distractors={distractors}
-            onPictureSelect={handlePictureSelect}
-            disabled={disabled}
-          />
+          {distractorsLoading ? (
+            <div className="text-center py-8">
+              <div className="text-2xl">⏳</div>
+              <p className="text-sm text-gray-500">Загружаем варианты...</p>
+            </div>
+          ) : (
+            <PictureGrid
+              correctWord={word}
+              distractors={distractors}
+              onPictureSelect={handlePictureSelect}
+              disabled={disabled}
+            />
+          )}
 
           <div className="text-center mt-8">
             <motion.div
@@ -149,33 +145,54 @@ export function MixGame({ word, onAnswer, disabled }: MixGameProps) {
         </>
       )}
 
-      {currentMixType === 'missing-letter' && letterData && (
-        <MissingLetterGame
-          word={word}
-          letterOptions={letterData.letterOptions}
-          missingLetterIndex={letterData.missingLetterIndex}
-          onLetterSelect={handleLetterSelect}
-          disabled={disabled}
-        />
+      {currentMixType === 'missing-letter' && (
+        letterOptionsLoading ? (
+          <div className="text-center py-8">
+            <div className="text-2xl">⏳</div>
+            <p className="text-sm text-gray-500">Подготавливаем буквы...</p>
+          </div>
+        ) : letterData ? (
+          <MissingLetterGame
+            word={word}
+            letterOptions={letterData.letterOptions}
+            missingLetterIndex={letterData.missingLetterIndex}
+            onLetterSelect={handleLetterSelect}
+            disabled={disabled}
+          />
+        ) : null
       )}
 
-      {currentMixType === 'extra-letter' && extraLetterData && (
-        <ExtraLetterGame
-          word={word}
-          wordWithExtraLetter={extraLetterData.wordWithExtraLetter}
-          extraLetterIndex={extraLetterData.extraLetterIndex}
-          onLetterRemove={handleLetterRemove}
-          disabled={disabled}
-        />
+      {currentMixType === 'extra-letter' && (
+        extraLetterLoading ? (
+          <div className="text-center py-8">
+            <div className="text-2xl">⏳</div>
+            <p className="text-sm text-gray-500">Создаем задание...</p>
+          </div>
+        ) : extraLetterData ? (
+          <ExtraLetterGame
+            word={word}
+            wordWithExtraLetter={extraLetterData.wordWithExtraLetter}
+            extraLetterIndex={extraLetterData.extraLetterIndex}
+            onLetterRemove={handleLetterRemove}
+            disabled={disabled}
+          />
+        ) : null
       )}
 
-      {currentMixType === 'spell-word' && spellLettersData && (
-        <SpellWordGame
-          word={word}
-          availableLetters={spellLettersData.availableLetters}
-          onWordComplete={handleWordComplete}
-          disabled={disabled}
-        />
+      {currentMixType === 'spell-word' && (
+        spellLettersLoading ? (
+          <div className="text-center py-8">
+            <div className="text-2xl">⏳</div>
+            <p className="text-sm text-gray-500">Готовим буквы...</p>
+          </div>
+        ) : spellLettersData ? (
+          <SpellWordGame
+            word={word}
+            availableLetters={spellLettersData.availableLetters}
+            onWordComplete={handleWordComplete}
+            disabled={disabled}
+          />
+        ) : null
       )}
     </div>
   );

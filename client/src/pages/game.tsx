@@ -338,14 +338,10 @@ export default function Game() {
     );
   }
 
-  // Only show loading if we're actually loading data for the current game type
-  const isGameDataLoading = !currentWord || 
-    (gameType === 'picture-match' && distractorsLoading) || 
-    (gameType === 'missing-letter' && letterOptionsLoading) ||
-    (gameType === 'extra-letter' && extraLetterLoading) ||
-    (gameType === 'spell-word' && spellLettersLoading);
+  // Show loading only if we don't have the current word at all
+  const isInitialLoading = !currentWord;
     
-  if (isGameDataLoading) {
+  if (isInitialLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -375,12 +371,19 @@ export default function Game() {
           <>
             <WordDisplay word={currentWord.word} />
             
-            <PictureGrid
-              correctWord={currentWord}
-              distractors={distractors}
-              onPictureSelect={handlePictureSelect}
-              disabled={!!selectedPicture || showCelebration}
-            />
+            {distractorsLoading ? (
+              <div className="text-center py-8">
+                <div className="text-2xl">⏳</div>
+                <p className="text-sm text-gray-500">Загружаем варианты...</p>
+              </div>
+            ) : (
+              <PictureGrid
+                correctWord={currentWord}
+                distractors={distractors}
+                onPictureSelect={handlePictureSelect}
+                disabled={!!selectedPicture || showCelebration}
+              />
+            )}
 
             <div className="text-center mt-8">
               <motion.div
@@ -401,33 +404,54 @@ export default function Game() {
           </>
         )}
 
-        {gameType === 'missing-letter' && letterData && (
-          <MissingLetterGame
-            word={currentWord}
-            letterOptions={letterData.letterOptions}
-            missingLetterIndex={letterData.missingLetterIndex}
-            onLetterSelect={handleLetterSelect}
-            disabled={!!selectedPicture || showCelebration}
-          />
+        {gameType === 'missing-letter' && (
+          letterOptionsLoading ? (
+            <div className="text-center py-8">
+              <div className="text-2xl">⏳</div>
+              <p className="text-sm text-gray-500">Подготавливаем буквы...</p>
+            </div>
+          ) : letterData ? (
+            <MissingLetterGame
+              word={currentWord}
+              letterOptions={letterData.letterOptions}
+              missingLetterIndex={letterData.missingLetterIndex}
+              onLetterSelect={handleLetterSelect}
+              disabled={!!selectedPicture || showCelebration}
+            />
+          ) : null
         )}
 
-        {gameType === 'extra-letter' && extraLetterData && (
-          <ExtraLetterGame
-            word={currentWord}
-            wordWithExtraLetter={extraLetterData.wordWithExtraLetter}
-            extraLetterIndex={extraLetterData.extraLetterIndex}
-            onLetterRemove={handleLetterRemove}
-            disabled={!!selectedPicture || showCelebration}
-          />
+        {gameType === 'extra-letter' && (
+          extraLetterLoading ? (
+            <div className="text-center py-8">
+              <div className="text-2xl">⏳</div>
+              <p className="text-sm text-gray-500">Создаем задание...</p>
+            </div>
+          ) : extraLetterData ? (
+            <ExtraLetterGame
+              word={currentWord}
+              wordWithExtraLetter={extraLetterData.wordWithExtraLetter}
+              extraLetterIndex={extraLetterData.extraLetterIndex}
+              onLetterRemove={handleLetterRemove}
+              disabled={!!selectedPicture || showCelebration}
+            />
+          ) : null
         )}
 
-        {gameType === 'spell-word' && spellLettersData && (
-          <SpellWordGame
-            word={currentWord}
-            availableLetters={spellLettersData.availableLetters}
-            onWordComplete={handleWordComplete}
-            disabled={!!selectedPicture || showCelebration}
-          />
+        {gameType === 'spell-word' && (
+          spellLettersLoading ? (
+            <div className="text-center py-8">
+              <div className="text-2xl">⏳</div>
+              <p className="text-sm text-gray-500">Готовим буквы...</p>
+            </div>
+          ) : spellLettersData ? (
+            <SpellWordGame
+              word={currentWord}
+              availableLetters={spellLettersData.availableLetters}
+              onWordComplete={handleWordComplete}
+              disabled={!!selectedPicture || showCelebration}
+            />
+          ) : null
         )}
 
         {gameType === 'mix' && (
