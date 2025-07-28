@@ -120,7 +120,7 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
       {/* Picture Display */}
       <div className="text-center">
         <div className="text-8xl mb-4">{getPictureEmoji(word)}</div>
-        <p className="text-xl text-child-text">Составь слово по картинке</p>
+
       </div>
 
       {/* Selected Letters Display */}
@@ -148,7 +148,7 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
             className="px-6 py-3 bg-red-500 text-white rounded-xl text-xl font-bold hover:bg-red-600 transition-colors shadow-lg border-2 border-red-500 hover:border-red-600"
             disabled={disabled}
           >
-            🗑️ Стереть всё
+            🗑️
           </motion.button>
         </div>
       )}
@@ -183,13 +183,12 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
           {showResult === 'correct' ? (
             <div className="text-6xl text-green-500">
               <div className="text-8xl mb-2">🎉</div>
-              <p className="text-2xl font-bold text-green-600">Правильно!</p>
+
             </div>
           ) : (
             <div className="text-6xl text-red-500">
               <div className="text-8xl mb-2">❌</div>
-              <p className="text-2xl font-bold text-red-600">Попробуй ещё раз!</p>
-              <p className="text-lg text-gray-600 mt-2">Правильно: {word.word}</p>
+              <p className="text-3xl font-bold text-gray-800 mt-2">{word.word}</p>
             </div>
           )}
         </motion.div>
@@ -198,7 +197,11 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
       {/* Progress indicator */}
       {!showResult && (
         <div className="text-center text-child-text">
-          <p className="text-xl font-bold">{selectedLetters.length} / {word.word.length} букв</p>
+          <div className="flex justify-center gap-2">
+            {Array.from({ length: word.word.length }).map((_, i) => (
+              <div key={i} className={`w-4 h-4 rounded-full ${i < selectedLetters.length ? 'bg-blue-500' : 'bg-gray-300'}`} />
+            ))}
+          </div>
         </div>
       )}
     </div>
