@@ -5,7 +5,8 @@ const GAME_ICONS: Record<GameType, string> = {
   'picture-match': '🖼️',
   'missing-letter': '➕', 
   'extra-letter': '🗑️',
-  'spell-word': '✏️'
+  'spell-word': '✏️',
+  'mix': '🎲'
 };
 
 interface GameMenuProps {
@@ -14,7 +15,7 @@ interface GameMenuProps {
 }
 
 export function GameMenu({ currentGameType, onGameTypeChange }: GameMenuProps) {
-  const gameTypes: GameType[] = ['picture-match', 'missing-letter', 'extra-letter', 'spell-word'];
+  const gameTypes: GameType[] = ['picture-match', 'missing-letter', 'extra-letter', 'spell-word', 'mix'];
   
   return (
     <div className="flex gap-2 mb-4">

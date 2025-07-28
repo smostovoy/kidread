@@ -32,10 +32,15 @@ The project uses a monorepo structure with shared types and schemas:
 ### Frontend Components
 - **Game**: Main game interface with word display and picture selection
 - **GameHeader**: Progress tracking and navigation
+- **GameMenu**: Icon-based navigation between 5 game modes (🖼️ ➕ 🗑️ ✏️ 🎲)
 - **WordDisplay**: Interactive letter buttons with audio pronunciation
 - **PictureGrid**: Grid of picture options for word matching
+- **MissingLetterGame**: Fill-in-the-blank letter challenges with drag & drop
+- **ExtraLetterGame**: Remove unwanted letters with trash can interaction
+- **SpellWordGame**: Letter sequence spelling from picture cues
+- **MixGame**: Random game type selector that varies each word
 - **CelebrationOverlay**: Success animations and feedback
-- **Audio Hook**: Web Speech API integration for Russian pronunciation
+- **Audio Hook**: Russian audio files with Web Speech API fallback
 
 ### Backend Architecture
 - **Express Server**: RESTful API with middleware for logging and error handling
@@ -109,7 +114,8 @@ The project uses a monorepo structure with shared types and schemas:
 - **Missing Letter Mode**: Fill-in-the-blank style gameplay where children identify missing letters
 - **Extra Letter Mode**: Identify and remove the extra letter inserted into a word
 - **Spell Word Mode**: Look at picture and spell the word by selecting letters from 10 available options
-- **Game Menu**: Toggle between four different game types via top navigation buttons
+- **Mix Mode**: Each new word randomly selects one of the four game types for varied learning experience
+- **Game Menu**: Toggle between five different game types via top navigation buttons with intuitive icons
 
 ### Educational Design
 - **Child-Friendly Interface**: Large buttons, bright colors, emoji icons
@@ -119,11 +125,12 @@ The project uses a monorepo structure with shared types and schemas:
 - **Smart Progression**: Words answered correctly are excluded for 30 days to focus on challenging vocabulary
 
 ### Interactive Elements
-- **Clickable Letters**: Each letter plays pronunciation sound
+- **Clickable Letters**: Each letter plays pronunciation sound in all game modes
 - **Picture Matching**: Visual word-to-image association
 - **Missing Letter Challenges**: Choose correct letter from 4 options to complete words
 - **Extra Letter Removal**: Click on incorrect letters to identify and remove them
 - **Word Spelling**: Select letters in sequence to spell words based on pictures
+- **Mixed Game Experience**: Random game type selection for each word in mix mode
 - **Celebration Animations**: Positive reinforcement for correct answers with auto-progression
 - **Error Handling**: Gentle audio feedback without text interruptions
 - **Persistent Sessions**: Progress saved across page reloads using localStorage

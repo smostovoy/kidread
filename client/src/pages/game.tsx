@@ -9,6 +9,7 @@ import { PictureGrid } from "@/components/PictureGrid";
 import { MissingLetterGame } from "@/components/MissingLetterGame";
 import { ExtraLetterGame } from "@/components/ExtraLetterGame";
 import { SpellWordGame } from "@/components/SpellWordGame";
+import { MixGame } from "@/components/MixGame";
 import { CelebrationOverlay } from "@/components/CelebrationOverlay";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
@@ -77,6 +78,33 @@ export default function Game() {
     queryKey: ["/api/words", currentWord?.id, "spell-letters"],
     enabled: !!currentWord?.id && gameType === 'spell-word',
   });
+
+  // Handle mix game answers
+  const handleMixAnswer = (isCorrect: boolean) => {
+    // Prevent multiple selections while processing
+    if (selectedPicture || showCelebration) return;
+    
+    setSelectedPicture({ id: 'mix-complete', word: 'mix-complete', image: '', audio: '' } as Word);
+    
+    // Record the answer in the database
+    if (currentWord) {
+      recordAnswerMutation.mutate({
+        wordId: currentWord.id,
+        isCorrect,
+        sessionId,
+      });
+    }
+    
+    if (isCorrect) {
+      setCorrectAnswers(prev => prev + 1);
+      setShowCelebration(true);
+    } else {
+      // Reset selection after a moment
+      setTimeout(() => {
+        setSelectedPicture(null);
+      }, 1500);
+    }
+  };
 
   // Mutation to record user answers
   const recordAnswerMutation = useMutation({
@@ -378,6 +406,14 @@ export default function Game() {
             word={currentWord}
             availableLetters={spellLettersData.availableLetters}
             onWordComplete={handleWordComplete}
+            disabled={!!selectedPicture || showCelebration}
+          />
+        )}
+
+        {gameType === 'mix' && (
+          <MixGame
+            word={currentWord}
+            onAnswer={handleMixAnswer}
             disabled={!!selectedPicture || showCelebration}
           />
         )}
