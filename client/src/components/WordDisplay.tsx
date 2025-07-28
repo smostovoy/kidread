@@ -8,8 +8,36 @@ interface WordDisplayProps {
 export function WordDisplay({ word }: WordDisplayProps) {
   const { playLetterSound } = useAudio();
 
+  // Play letter sound from рос folder
+  const playRussianLetterSound = (letter: string) => {
+    const audio = new Audio(`/audio/letters/рос/${letter}.mp3`);
+    
+    audio.addEventListener('error', () => {
+      console.log(`Russian audio not found for letter: ${letter}, using Web Speech API`);
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(letter);
+        utterance.lang = 'ru-RU';
+        utterance.rate = 0.7;
+        speechSynthesis.speak(utterance);
+      }
+    });
+    
+    audio.addEventListener('canplaythrough', () => {
+      console.log(`Playing Russian audio for letter: ${letter}`);
+    });
+
+    audio.play().catch(() => {
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(letter);
+        utterance.lang = 'ru-RU';
+        utterance.rate = 0.7;
+        speechSynthesis.speak(utterance);
+      }
+    });
+  };
+
   const handleLetterClick = (letter: string) => {
-    playLetterSound(letter);
+    playRussianLetterSound(letter);
   };
 
   return (

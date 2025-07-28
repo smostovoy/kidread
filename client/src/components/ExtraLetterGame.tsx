@@ -56,6 +56,34 @@ const PICTURE_EMOJIS: Record<string, string> = {
 export function ExtraLetterGame({ word, wordWithExtraLetter, extraLetterIndex, onLetterRemove, disabled }: ExtraLetterGameProps) {
   const { playLetterSound } = useAudio();
   
+  // Play letter sound from рос folder
+  const playRussianLetterSound = (letter: string) => {
+    const audio = new Audio(`/audio/letters/рос/${letter}.mp3`);
+    
+    audio.addEventListener('error', () => {
+      console.log(`Russian audio not found for letter: ${letter}, using Web Speech API`);
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(letter);
+        utterance.lang = 'ru-RU';
+        utterance.rate = 0.7;
+        speechSynthesis.speak(utterance);
+      }
+    });
+    
+    audio.addEventListener('canplaythrough', () => {
+      console.log(`Playing Russian audio for letter: ${letter}`);
+    });
+
+    audio.play().catch(() => {
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(letter);
+        utterance.lang = 'ru-RU';
+        utterance.rate = 0.7;
+        speechSynthesis.speak(utterance);
+      }
+    });
+  };
+  
   const wordArray = wordWithExtraLetter.split('');
   const emoji = PICTURE_EMOJIS[word.image] || '❓';
 
@@ -63,7 +91,7 @@ export function ExtraLetterGame({ word, wordWithExtraLetter, extraLetterIndex, o
     if (disabled) return;
     
     const letter = wordArray[letterIndex];
-    playLetterSound(letter);
+    playRussianLetterSound(letter);
     const isCorrect = letterIndex === extraLetterIndex;
     onLetterRemove(letterIndex, isCorrect);
   };
