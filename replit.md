@@ -1,4 +1,4 @@
-# Kidsread - Russian Reading Game App
+# Kidread - Russian Reading Game App
 
 ## Overview
 
