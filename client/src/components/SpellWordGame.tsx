@@ -111,11 +111,11 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
       </div>
 
       {/* Selected Letters Display */}
-      <div className="flex justify-center gap-2 min-h-[80px] items-center">
+      <div className="flex justify-center gap-3 min-h-[100px] items-center">
         {Array.from({ length: word.word.length }).map((_, index) => (
           <motion.div
             key={index}
-            className="w-16 h-16 border-2 border-child-primary rounded-lg flex items-center justify-center bg-white text-2xl font-bold cursor-pointer hover:bg-child-secondary/20"
+            className="w-20 h-20 border-4 border-child-primary rounded-xl flex items-center justify-center bg-white text-4xl font-black cursor-pointer hover:bg-child-secondary/20 shadow-lg"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => selectedLetters[index] && handleLetterRemove(index)}
@@ -126,14 +126,14 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
       </div>
 
       {/* Available Letters */}
-      <div className="grid grid-cols-5 gap-3 max-w-md mx-auto">
+      <div className="grid grid-cols-5 gap-4 max-w-lg mx-auto">
         {availableLetters.map((letter, index) => (
           <motion.button
             key={index}
-            className={`w-16 h-16 rounded-lg text-2xl font-bold transition-all ${
+            className={`w-20 h-20 rounded-xl text-3xl font-black transition-all shadow-lg ${
               usedLetterIndices.has(index)
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-child-primary text-white hover:bg-child-primary/80 shadow-lg'
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed border-2 border-gray-400'
+                : 'bg-child-primary text-white hover:bg-child-primary/80 border-2 border-child-primary hover:border-child-primary/80'
             }`}
             whileHover={!usedLetterIndices.has(index) && !disabled ? { scale: 1.1 } : {}}
             whileTap={!usedLetterIndices.has(index) && !disabled ? { scale: 0.9 } : {}}
@@ -147,7 +147,7 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
 
       {/* Progress indicator */}
       <div className="text-center text-child-text">
-        <p>{selectedLetters.length} / {word.word.length} букв</p>
+        <p className="text-xl font-bold">{selectedLetters.length} / {word.word.length} букв</p>
       </div>
     </div>
   );
