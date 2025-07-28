@@ -95,6 +95,11 @@ export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onL
     playRussianLetterSound(letter);
   };
 
+  const handleWordLetterClick = (letter: string, letterIndex: number) => {
+    if (disabled || letterIndex === missingLetterIndex) return;
+    playRussianLetterSound(letter);
+  };
+
   const handleDragStart = (letter: string) => {
     if (disabled) return;
     setDraggedLetter(letter);
@@ -140,9 +145,10 @@ export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onL
               rounded-lg border-2 transition-colors
               ${index === missingLetterIndex 
                 ? 'border-dashed border-blue-400 bg-blue-50 text-transparent cursor-pointer' 
-                : 'border-gray-300 bg-white text-gray-800'
+                : 'border-gray-300 bg-white text-gray-800 cursor-pointer hover:bg-blue-50'
               }
             `}
+            onClick={index !== missingLetterIndex ? () => handleWordLetterClick(letter, index) : undefined}
             onDrop={index === missingLetterIndex ? handleDrop : undefined}
             onDragOver={index === missingLetterIndex ? handleDragOver : undefined}
           >
