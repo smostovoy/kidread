@@ -23,7 +23,7 @@ const GAME_TYPE_NAMES: Record<Exclude<GameType, 'mix'>, string> = {
 
 const GAME_TYPE_ICONS: Record<Exclude<GameType, 'mix'>, string> = {
   'picture-match': '🖼️',
-  'missing-letter': '➕',
+  'missing-letter': '🔍',
   'extra-letter': '🗑️',
   'spell-word': '✏️'
 };

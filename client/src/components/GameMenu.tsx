@@ -3,7 +3,7 @@ import { type GameType } from "@shared/schema";
 
 const GAME_ICONS: Record<GameType, string> = {
   'picture-match': '🖼️',
-  'missing-letter': '➕', 
+  'missing-letter': '🔍', 
   'extra-letter': '🗑️',
   'spell-word': '✏️',
   'mix': '🎲'
