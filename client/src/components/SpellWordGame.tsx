@@ -104,11 +104,24 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
     setUsedLetterIndices(newUsedIndices);
   };
 
-  const handleClearAll = () => {
-    if (disabled || showResult) return;
+  const handleBackspace = () => {
+    if (disabled || showResult || selectedLetters.length === 0) return;
     
-    setSelectedLetters([]);
-    setUsedLetterIndices(new Set());
+    // Remove the last letter
+    const lastIndex = selectedLetters.length - 1;
+    const lastLetter = selectedLetters[lastIndex];
+    
+    // Find the original index of this letter in availableLetters
+    const originalIndex = availableLetters.findIndex((letter, idx) => 
+      letter === lastLetter && usedLetterIndices.has(idx)
+    );
+    
+    const newSelectedLetters = selectedLetters.slice(0, -1);
+    const newUsedIndices = new Set(Array.from(usedLetterIndices));
+    newUsedIndices.delete(originalIndex);
+    
+    setSelectedLetters(newSelectedLetters);
+    setUsedLetterIndices(newUsedIndices);
   };
 
   const getPictureEmoji = (word: Word) => {
@@ -136,22 +149,22 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
             {selectedLetters[index] || ''}
           </motion.div>
         ))}
-      </div>
-
-      {/* Clear Button */}
-      {selectedLetters.length > 0 && !showResult && (
-        <div className="flex justify-center mb-4">
+        
+        {/* Backspace Button */}
+        {selectedLetters.length > 0 && !showResult && (
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleClearAll}
-            className="px-6 py-3 bg-red-500 text-white rounded-xl text-xl font-bold hover:bg-red-600 transition-colors shadow-lg border-2 border-red-500 hover:border-red-600"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={handleBackspace}
+            className="w-20 h-20 bg-orange-500 text-white rounded-xl text-3xl font-bold hover:bg-orange-600 transition-colors shadow-lg border-2 border-orange-500 hover:border-orange-600 ml-2"
             disabled={disabled}
           >
-            🗑️
+            ⌫
           </motion.button>
-        </div>
-      )}
+        )}
+      </div>
+
+
 
       {/* Available Letters */}
       <div className="grid grid-cols-5 gap-4 max-w-lg mx-auto">
