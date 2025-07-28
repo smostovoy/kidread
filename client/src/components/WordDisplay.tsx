@@ -41,11 +41,7 @@ export function WordDisplay({ word }: WordDisplayProps) {
   };
 
   return (
-    <div className="text-center mb-8">
-      <h2 className="text-3xl font-bold text-child-text mb-6">
-        Найди картинку к слову:
-      </h2>
-      
+    <div className="text-center mb-8">      
       <div className="flex justify-center space-x-4 mb-8">
         {word.split('').map((letter, index) => (
           <motion.button

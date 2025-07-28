@@ -1,65 +1,38 @@
 import { motion } from "framer-motion";
 import { type GameType } from "@shared/schema";
 
+const GAME_ICONS: Record<GameType, string> = {
+  'picture-match': '🖼️',
+  'missing-letter': '❓', 
+  'extra-letter': '🗑️',
+  'spell-word': '🔤'
+};
+
 interface GameMenuProps {
   currentGameType: GameType;
   onGameTypeChange: (gameType: GameType) => void;
 }
 
 export function GameMenu({ currentGameType, onGameTypeChange }: GameMenuProps) {
+  const gameTypes: GameType[] = ['picture-match', 'missing-letter', 'extra-letter', 'spell-word'];
+  
   return (
     <div className="flex gap-2 mb-4">
-      <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={() => onGameTypeChange('picture-match')}
-        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-          currentGameType === 'picture-match'
-            ? 'bg-blue-500 text-white shadow-md'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-        }`}
-      >
-        Картинки
-      </motion.button>
-      
-      <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={() => onGameTypeChange('missing-letter')}
-        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-          currentGameType === 'missing-letter'
-            ? 'bg-blue-500 text-white shadow-md'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-        }`}
-      >
-        Найти букву
-      </motion.button>
-      
-      <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={() => onGameTypeChange('extra-letter')}
-        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-          currentGameType === 'extra-letter'
-            ? 'bg-blue-500 text-white shadow-md'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-        }`}
-      >
-        Убрать лишнее
-      </motion.button>
-      
-      <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={() => onGameTypeChange('spell-word')}
-        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-          currentGameType === 'spell-word'
-            ? 'bg-blue-500 text-white shadow-md'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-        }`}
-      >
-        Составь слово
-      </motion.button>
+      {gameTypes.map((gameType) => (
+        <motion.button
+          key={gameType}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => onGameTypeChange(gameType)}
+          className={`w-16 h-16 rounded-xl text-3xl transition-colors flex items-center justify-center ${
+            currentGameType === gameType
+              ? 'bg-blue-500 text-white shadow-md'
+              : 'bg-gray-100 hover:bg-gray-200'
+          }`}
+        >
+          {GAME_ICONS[gameType]}
+        </motion.button>
+      ))}
     </div>
   );
 }

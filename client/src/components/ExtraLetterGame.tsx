@@ -129,15 +129,7 @@ export function ExtraLetterGame({ word, wordWithExtraLetter, extraLetterIndex, o
         {emoji}
       </motion.div>
 
-      {/* Instructions */}
-      <div className="text-center mb-4">
-        <p className="text-2xl font-bold text-gray-700 mb-2">
-          Перетащи лишнюю букву в корзину:
-        </p>
-        <p className="text-lg text-gray-500">
-          Одна буква здесь лишняя!
-        </p>
-      </div>
+
 
       {/* Word with extra letter - draggable */}
       <div className="flex gap-2 mb-8">
@@ -186,18 +178,7 @@ export function ExtraLetterGame({ word, wordWithExtraLetter, extraLetterIndex, o
         🗑️
       </motion.div>
 
-      {/* Helper hint */}
-      <motion.div
-        className="text-center"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.2 }}
-      >
-        <div className="text-4xl mb-2">👆</div>
-        <p className="text-lg text-gray-600">
-          Перетащи лишнюю букву в корзину
-        </p>
-      </motion.div>
+
     </div>
   );
 }
