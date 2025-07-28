@@ -45,6 +45,7 @@ export function MixGame({ word, onAnswer, disabled }: MixGameProps) {
   const { data: distractors = [], isLoading: distractorsLoading } = useQuery<Word[]>({
     queryKey: ["/api/words", word.id, "distractors"],
     enabled: currentMixType === 'picture-match',
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const { data: letterData, isLoading: letterOptionsLoading } = useQuery<{
@@ -54,6 +55,7 @@ export function MixGame({ word, onAnswer, disabled }: MixGameProps) {
   }>({
     queryKey: ["/api/words", word.id, "letter-options"],
     enabled: currentMixType === 'missing-letter',
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const { data: extraLetterData, isLoading: extraLetterLoading } = useQuery<{
@@ -63,6 +65,7 @@ export function MixGame({ word, onAnswer, disabled }: MixGameProps) {
   }>({
     queryKey: ["/api/words", word.id, "extra-letter"],
     enabled: currentMixType === 'extra-letter',
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const { data: spellLettersData, isLoading: spellLettersLoading } = useQuery<{
@@ -70,6 +73,7 @@ export function MixGame({ word, onAnswer, disabled }: MixGameProps) {
   }>({
     queryKey: ["/api/words", word.id, "spell-letters"],
     enabled: currentMixType === 'spell-word',
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const handlePictureSelect = (selectedWord: Word, isCorrect: boolean) => {

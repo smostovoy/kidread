@@ -40,12 +40,14 @@ export default function Game() {
   const { data: words = [], isLoading: wordsLoading } = useQuery<Word[]>({
     queryKey: ["/api/words", sessionId],
     queryFn: () => fetch(`/api/words?sessionId=${sessionId}`).then(res => res.json()),
+    staleTime: 2 * 60 * 1000, // 2 minutes
   });
 
   // Fetch today's progress
   const { data: todayProgress, isLoading: progressLoading } = useQuery<{ correctAnswersToday: number }>({
     queryKey: ["/api/progress/today", sessionId],
     queryFn: () => fetch(`/api/progress/today?sessionId=${sessionId}`).then(res => res.json()),
+    staleTime: 30 * 1000, // 30 seconds
   });
 
   // Get current word
@@ -55,6 +57,7 @@ export default function Game() {
   const { data: distractors = [], isLoading: distractorsLoading } = useQuery<Word[]>({
     queryKey: ["/api/words", currentWord?.id, "distractors"],
     enabled: !!currentWord?.id && gameType === 'picture-match',
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Fetch letter options for current word (missing-letter mode)
@@ -65,6 +68,7 @@ export default function Game() {
   }>({
     queryKey: ["/api/words", currentWord?.id, "letter-options"],
     enabled: !!currentWord?.id && gameType === 'missing-letter',
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Fetch extra letter data for current word (extra-letter mode)
@@ -75,6 +79,7 @@ export default function Game() {
   }>({
     queryKey: ["/api/words", currentWord?.id, "extra-letter"],
     enabled: !!currentWord?.id && gameType === 'extra-letter',
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Fetch spell letters for current word (spell-word mode)
@@ -83,6 +88,7 @@ export default function Game() {
   }>({
     queryKey: ["/api/words", currentWord?.id, "spell-letters"],
     enabled: !!currentWord?.id && gameType === 'spell-word',
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Handle mix game answers
@@ -332,11 +338,14 @@ export default function Game() {
     );
   }
 
-  if (!currentWord || 
-      (gameType === 'picture-match' && distractorsLoading) || 
-      (gameType === 'missing-letter' && letterOptionsLoading) ||
-      (gameType === 'extra-letter' && extraLetterLoading) ||
-      (gameType === 'spell-word' && spellLettersLoading)) {
+  // Only show loading if we're actually loading data for the current game type
+  const isGameDataLoading = !currentWord || 
+    (gameType === 'picture-match' && distractorsLoading) || 
+    (gameType === 'missing-letter' && letterOptionsLoading) ||
+    (gameType === 'extra-letter' && extraLetterLoading) ||
+    (gameType === 'spell-word' && spellLettersLoading);
+    
+  if (isGameDataLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

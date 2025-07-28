@@ -8,6 +8,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get available words (excluding correctly answered ones in last month)
   app.get("/api/words", async (req, res) => {
     try {
+      // Cache words list for 2 minutes
+      res.set('Cache-Control', 'public, max-age=120');
       const sessionId = req.query.sessionId as string || 'default-session';
       const words = await storage.getAvailableWords(sessionId);
       res.json(words);
@@ -33,6 +35,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get random words for distractors
   app.get("/api/words/:id/distractors", async (req, res) => {
     try {
+      // Cache distractors for 5 minutes
+      res.set('Cache-Control', 'public, max-age=300');
       const count = parseInt(req.query.count as string) || 3;
       const distractors = await storage.getRandomWords(req.params.id, count);
       res.json(distractors);
