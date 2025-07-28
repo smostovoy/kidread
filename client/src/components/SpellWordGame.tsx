@@ -62,7 +62,7 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
 
   // Play letter sound from укр folder
   const playUkrLetterSound = (letter: string) => {
-    const audio = new Audio(`/audio/укр/${letter}.mp3`);
+    const audio = new Audio(`/audio/letters/укр/${letter}.mp3`);
     
     audio.addEventListener('error', () => {
       // Fallback to Web Speech API if file not found
