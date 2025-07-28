@@ -15,7 +15,7 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswers, onSet
       <div className="max-w-4xl mx-auto flex justify-between items-center">
         <h1 className="text-2xl font-bold text-primary flex items-center">
           <span className="text-3xl mr-2">📚</span>
-          Учимся Читать
+          Kidsread
         </h1>
         
         <div className="flex items-center space-x-4">
