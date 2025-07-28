@@ -115,7 +115,7 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
         {Array.from({ length: word.word.length }).map((_, index) => (
           <motion.div
             key={index}
-            className="w-20 h-20 border-4 border-child-primary rounded-xl flex items-center justify-center bg-white text-4xl font-black cursor-pointer hover:bg-child-secondary/20 shadow-lg"
+            className="w-20 h-20 border-4 border-blue-500 rounded-xl flex items-center justify-center bg-gray-100 text-4xl font-black text-black cursor-pointer hover:bg-blue-100 shadow-lg"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => selectedLetters[index] && handleLetterRemove(index)}
@@ -132,8 +132,8 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
             key={index}
             className={`w-20 h-20 rounded-xl text-3xl font-black transition-all shadow-lg ${
               usedLetterIndices.has(index)
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed border-2 border-gray-400'
-                : 'bg-child-primary text-white hover:bg-child-primary/80 border-2 border-child-primary hover:border-child-primary/80'
+                ? 'bg-gray-300 text-gray-600 cursor-not-allowed border-2 border-gray-400'
+                : 'bg-blue-500 text-white hover:bg-blue-600 border-2 border-blue-500 hover:border-blue-600'
             }`}
             whileHover={!usedLetterIndices.has(index) && !disabled ? { scale: 1.1 } : {}}
             whileTap={!usedLetterIndices.has(index) && !disabled ? { scale: 0.9 } : {}}
