@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useState } from "react";
 import { type Word } from "@shared/schema";
 import { useAudio } from "@/hooks/useAudio";
 
@@ -55,6 +56,7 @@ const PICTURE_EMOJIS: Record<string, string> = {
 
 export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onLetterSelect, disabled }: MissingLetterGameProps) {
   const { playLetterSound } = useAudio();
+  const [draggedLetter, setDraggedLetter] = useState<string | null>(null);
   
   // Play letter sound from рос folder
   const playRussianLetterSound = (letter: string) => {
@@ -90,10 +92,28 @@ export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onL
 
   const handleLetterClick = (letter: string) => {
     if (disabled) return;
-    
     playRussianLetterSound(letter);
-    const isCorrect = letter === correctLetter;
-    onLetterSelect(letter, isCorrect);
+  };
+
+  const handleDragStart = (letter: string) => {
+    if (disabled) return;
+    setDraggedLetter(letter);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedLetter(null);
+  };
+
+  const handleDrop = () => {
+    if (!draggedLetter || disabled) return;
+    
+    const isCorrect = draggedLetter === correctLetter;
+    onLetterSelect(draggedLetter, isCorrect);
+    setDraggedLetter(null);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
   };
 
   return (
@@ -119,10 +139,12 @@ export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onL
               w-16 h-16 flex items-center justify-center text-3xl font-bold
               rounded-lg border-2 transition-colors
               ${index === missingLetterIndex 
-                ? 'border-dashed border-blue-400 bg-blue-50 text-transparent' 
+                ? 'border-dashed border-blue-400 bg-blue-50 text-transparent cursor-pointer' 
                 : 'border-gray-300 bg-white text-gray-800'
               }
             `}
+            onDrop={index === missingLetterIndex ? handleDrop : undefined}
+            onDragOver={index === missingLetterIndex ? handleDragOver : undefined}
           >
             {index === missingLetterIndex ? '❓' : letter}
           </motion.div>
@@ -132,7 +154,7 @@ export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onL
       {/* Letter options */}
       <div className="grid grid-cols-2 gap-4">
         {letterOptions.map((letter, index) => (
-          <motion.button
+          <motion.div
             key={letter}
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
@@ -140,9 +162,11 @@ export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onL
             whileHover={{ scale: disabled ? 1 : 1.05 }}
             whileTap={{ scale: disabled ? 1 : 0.95 }}
             onClick={() => handleLetterClick(letter)}
-            disabled={disabled}
+            draggable={!disabled}
+            onDragStart={() => handleDragStart(letter)}
+            onDragEnd={handleDragEnd}
             className={`
-              w-20 h-20 text-4xl font-bold rounded-xl transition-all duration-200
+              w-20 h-20 text-4xl font-bold rounded-xl transition-all duration-200 cursor-pointer select-none
               ${disabled 
                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
                 : 'bg-gradient-to-br from-purple-400 to-pink-400 text-white shadow-lg hover:shadow-xl hover:from-purple-500 hover:to-pink-500'
@@ -151,7 +175,7 @@ export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onL
             `}
           >
             {letter}
-          </motion.button>
+          </motion.div>
         ))}
       </div>
     </div>
