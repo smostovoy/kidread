@@ -8,6 +8,7 @@ import { WordDisplay } from "@/components/WordDisplay";
 import { PictureGrid } from "@/components/PictureGrid";
 import { MissingLetterGame } from "@/components/MissingLetterGame";
 import { ExtraLetterGame } from "@/components/ExtraLetterGame";
+import { SpellWordGame } from "@/components/SpellWordGame";
 import { CelebrationOverlay } from "@/components/CelebrationOverlay";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
@@ -67,6 +68,14 @@ export default function Game() {
   }>({
     queryKey: ["/api/words", currentWord?.id, "extra-letter"],
     enabled: !!currentWord?.id && gameType === 'extra-letter',
+  });
+
+  // Fetch spell letters for current word (spell-word mode)
+  const { data: spellLettersData, isLoading: spellLettersLoading } = useQuery<{
+    availableLetters: string[];
+  }>({
+    queryKey: ["/api/words", currentWord?.id, "spell-letters"],
+    enabled: !!currentWord?.id && gameType === 'spell-word',
   });
 
   // Mutation to record user answers
@@ -137,6 +146,32 @@ export default function Game() {
     if (selectedPicture || showCelebration) return;
     
     setSelectedPicture({ id: `remove-${letterIndex}`, word: `remove-${letterIndex}`, image: '', audio: '' } as Word);
+    
+    // Record the answer in the database
+    if (currentWord) {
+      recordAnswerMutation.mutate({
+        wordId: currentWord.id,
+        isCorrect,
+        sessionId,
+      });
+    }
+    
+    if (isCorrect) {
+      setCorrectAnswers(prev => prev + 1);
+      setShowCelebration(true);
+    } else {
+      // Reset selection after a moment
+      setTimeout(() => {
+        setSelectedPicture(null);
+      }, 1500);
+    }
+  };
+
+  const handleWordComplete = (isCorrect: boolean) => {
+    // Prevent multiple selections while processing
+    if (selectedPicture || showCelebration) return;
+    
+    setSelectedPicture({ id: 'spell-complete', word: 'spell-complete', image: '', audio: '' } as Word);
     
     // Record the answer in the database
     if (currentWord) {
@@ -261,7 +296,8 @@ export default function Game() {
   if (!currentWord || 
       (gameType === 'picture-match' && distractorsLoading) || 
       (gameType === 'missing-letter' && letterOptionsLoading) ||
-      (gameType === 'extra-letter' && extraLetterLoading)) {
+      (gameType === 'extra-letter' && extraLetterLoading) ||
+      (gameType === 'spell-word' && spellLettersLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -333,6 +369,15 @@ export default function Game() {
             wordWithExtraLetter={extraLetterData.wordWithExtraLetter}
             extraLetterIndex={extraLetterData.extraLetterIndex}
             onLetterRemove={handleLetterRemove}
+            disabled={!!selectedPicture || showCelebration}
+          />
+        )}
+
+        {gameType === 'spell-word' && spellLettersData && (
+          <SpellWordGame
+            word={currentWord}
+            availableLetters={spellLettersData.availableLetters}
+            onWordComplete={handleWordComplete}
             disabled={!!selectedPicture || showCelebration}
           />
         )}

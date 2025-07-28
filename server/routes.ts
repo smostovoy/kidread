@@ -113,6 +113,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get letter options for spell word game
+  app.get("/api/words/:id/spell-letters", async (req, res) => {
+    try {
+      const word = await storage.getWord(req.params.id);
+      if (!word) {
+        return res.status(404).json({ message: "Word not found" });
+      }
+      
+      const wordText = word.word;
+      const russianLetters = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ';
+      
+      // Get unique letters from the word
+      const wordLetters = Array.from(new Set(wordText.split('')));
+      
+      // Calculate how many additional letters we need (total should be 10)
+      const targetTotal = 10;
+      const additionalLettersNeeded = targetTotal - wordLetters.length;
+      
+      // Generate random letters that are not in the word
+      const availableLetters = russianLetters.split('').filter(letter => !wordLetters.includes(letter));
+      const additionalLetters = availableLetters
+        .sort(() => Math.random() - 0.5)
+        .slice(0, Math.max(0, additionalLettersNeeded));
+      
+      // Combine word letters with additional letters and shuffle
+      const allLetters = [...wordLetters, ...additionalLetters]
+        .sort(() => Math.random() - 0.5);
+      
+      res.json({
+        availableLetters: allLetters
+      });
+    } catch (error) {
+      console.error("Error getting spell letters:", error);
+      res.status(500).json({ message: "Failed to get spell letters" });
+    }
+  });
+
   // Create game progress
   app.post("/api/game-progress", async (req, res) => {
     try {

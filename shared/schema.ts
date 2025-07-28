@@ -46,7 +46,7 @@ export type InsertUserAnswer = z.infer<typeof insertUserAnswerSchema>;
 export type UserAnswer = typeof userAnswers.$inferSelect;
 
 // Game types
-export type GameType = 'picture-match' | 'missing-letter' | 'extra-letter';
+export type GameType = 'picture-match' | 'missing-letter' | 'extra-letter' | 'spell-word';
 
 // Letter audio mapping for Russian alphabet
 export const RUSSIAN_LETTERS = {
