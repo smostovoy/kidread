@@ -104,6 +104,13 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
     setUsedLetterIndices(newUsedIndices);
   };
 
+  const handleClearAll = () => {
+    if (disabled || showResult) return;
+    
+    setSelectedLetters([]);
+    setUsedLetterIndices(new Set());
+  };
+
   const getPictureEmoji = (word: Word) => {
     return PICTURE_EMOJIS[word.image] || '❓';
   };
@@ -130,6 +137,21 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
           </motion.div>
         ))}
       </div>
+
+      {/* Clear Button */}
+      {selectedLetters.length > 0 && !showResult && (
+        <div className="flex justify-center mb-4">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleClearAll}
+            className="px-6 py-3 bg-red-500 text-white rounded-xl text-xl font-bold hover:bg-red-600 transition-colors shadow-lg border-2 border-red-500 hover:border-red-600"
+            disabled={disabled}
+          >
+            🗑️ Стереть всё
+          </motion.button>
+        </div>
+      )}
 
       {/* Available Letters */}
       <div className="grid grid-cols-5 gap-4 max-w-lg mx-auto">
