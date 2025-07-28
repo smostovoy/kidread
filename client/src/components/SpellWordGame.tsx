@@ -60,32 +60,44 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
   const [draggedLetter, setDraggedLetter] = useState<{letter: string, index: number} | null>(null);
   const { playLetterSound } = useAudio();
 
-  // Play letter sound from укр folder
+  // Play letter sound with fallback from укр to рос folder
   const playUkrLetterSound = (letter: string) => {
-    const audio = new Audio(`/audio/letters/укр/${letter}.mp3`);
-    let fallbackUsed = false;
+    const ukrAudio = new Audio(`/audio/letters/укр/${letter}.mp3`);
+    let fallbackAttempted = false;
     
-    const useFallback = () => {
-      if (!fallbackUsed && 'speechSynthesis' in window) {
-        fallbackUsed = true;
-        console.log(`Audio file not found for letter: ${letter}, using Web Speech API`);
-        const utterance = new SpeechSynthesisUtterance(letter);
-        utterance.lang = 'ru-RU'; // Changed to Russian for better pronunciation
-        utterance.rate = 0.7;
-        speechSynthesis.speak(utterance);
-      }
+    const tryRussianAudio = () => {
+      if (fallbackAttempted) return;
+      fallbackAttempted = true;
+      
+      console.log(`Ukrainian audio not found for letter: ${letter}, trying Russian audio`);
+      const rosAudio = new Audio(`/audio/letters/рос/${letter}.mp3`);
+      
+      rosAudio.addEventListener('error', () => {
+        console.log(`Russian audio not found for letter: ${letter}, using Web Speech API`);
+        if ('speechSynthesis' in window) {
+          const utterance = new SpeechSynthesisUtterance(letter);
+          utterance.lang = 'ru-RU';
+          utterance.rate = 0.7;
+          speechSynthesis.speak(utterance);
+        }
+      });
+      
+      rosAudio.play().catch(() => {
+        if ('speechSynthesis' in window) {
+          const utterance = new SpeechSynthesisUtterance(letter);
+          utterance.lang = 'ru-RU';
+          utterance.rate = 0.7;
+          speechSynthesis.speak(utterance);
+        }
+      });
     };
     
-    audio.addEventListener('error', useFallback);
-    audio.addEventListener('canplaythrough', () => {
-      // File exists and is ready to play
-      console.log(`Playing audio file for letter: ${letter}`);
+    ukrAudio.addEventListener('error', tryRussianAudio);
+    ukrAudio.addEventListener('canplaythrough', () => {
+      console.log(`Playing Ukrainian audio for letter: ${letter}`);
     });
 
-    audio.play().catch(() => {
-      // Fallback if audio fails to play
-      useFallback();
-    });
+    ukrAudio.play().catch(tryRussianAudio);
   };
 
   const handleLetterClick = (letter: string) => {
