@@ -192,6 +192,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get today's progress (correct answers count)
+  app.get("/api/progress/today", async (req, res) => {
+    try {
+      const sessionId = req.query.sessionId as string || 'default-session';
+      const count = await storage.getTodayCorrectAnswersCount(sessionId);
+      res.json({ correctAnswersToday: count });
+    } catch (error) {
+      console.error("Error getting today's progress:", error);
+      res.status(500).json({ message: "Failed to get today's progress" });
+    }
+  });
+
   // Record user answer
   app.post("/api/answers", async (req, res) => {
     try {

@@ -3,12 +3,14 @@ import { motion } from "framer-motion";
 interface GameHeaderProps {
   currentWordIndex: number;
   totalWords: number;
-  correctAnswers: number;
+  correctAnswersToday: number;
   onSettingsClick: () => void;
 }
 
-export function GameHeader({ currentWordIndex, totalWords, correctAnswers, onSettingsClick }: GameHeaderProps) {
-  const progressPercentage = (currentWordIndex / totalWords) * 100;
+export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, onSettingsClick }: GameHeaderProps) {
+  // Calculate progress based on today's correct answers
+  const targetAnswers = Math.max(20, correctAnswersToday);
+  const progressPercentage = Math.min((correctAnswersToday / targetAnswers) * 100, 100);
 
   return (
     <header className="bg-white shadow-lg p-4 mb-6">
@@ -28,7 +30,7 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswers, onSet
             />
           </div>
           <span className="text-lg font-semibold text-child-text">
-            {currentWordIndex + 1}/{totalWords}
+            {correctAnswersToday >= 20 ? `${correctAnswersToday}/${correctAnswersToday}` : `${correctAnswersToday}/20`}
           </span>
         </div>
         

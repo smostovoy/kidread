@@ -17,6 +17,7 @@ export interface IStorage {
   // User answer tracking
   recordAnswer(answer: InsertUserAnswer): Promise<UserAnswer>;
   getCorrectAnswersInLastMonth(sessionId: string): Promise<string[]>;
+  getTodayCorrectAnswersCount(sessionId: string): Promise<number>;
   
   // Game logic helpers
   getRandomWords(excludeId: string, count: number): Promise<Word[]>;
@@ -137,6 +138,24 @@ export class DatabaseStorage implements IStorage {
       );
 
     return correctAnswers.map(answer => answer.wordId);
+  }
+
+  async getTodayCorrectAnswersCount(sessionId: string): Promise<number> {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(userAnswers)
+      .where(
+        and(
+          eq(userAnswers.sessionId, sessionId),
+          eq(userAnswers.isCorrect, true),
+          gt(userAnswers.answeredAt, todayStart)
+        )
+      );
+
+    return Number(result[0]?.count || 0);
   }
 
   async getAvailableWords(sessionId: string): Promise<Word[]> {

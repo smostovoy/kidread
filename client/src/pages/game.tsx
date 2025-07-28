@@ -42,6 +42,12 @@ export default function Game() {
     queryFn: () => fetch(`/api/words?sessionId=${sessionId}`).then(res => res.json()),
   });
 
+  // Fetch today's progress
+  const { data: todayProgress, isLoading: progressLoading } = useQuery<{ correctAnswersToday: number }>({
+    queryKey: ["/api/progress/today", sessionId],
+    queryFn: () => fetch(`/api/progress/today?sessionId=${sessionId}`).then(res => res.json()),
+  });
+
   // Get current word
   const currentWord = words[currentWordIndex];
 
@@ -114,7 +120,12 @@ export default function Game() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(answerData),
       }).then(res => res.json()),
-    // Remove onSuccess to prevent query invalidation that causes re-renders
+    onSuccess: (data, variables) => {
+      // Only invalidate today's progress when answer is correct
+      if (variables.isCorrect) {
+        queryClient.invalidateQueries({ queryKey: ["/api/progress/today", sessionId] });
+      }
+    }
   });
 
   const handlePictureSelect = (word: Word, isCorrect: boolean) => {
@@ -271,7 +282,7 @@ export default function Game() {
     setShowCelebration(false);
   };
 
-  if (wordsLoading) {
+  if (wordsLoading || progressLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -303,7 +314,7 @@ export default function Game() {
             Ты прошёл все слова!
           </p>
           <p className="text-xl text-secondary mb-6 font-semibold">
-            Правильных ответов: {correctAnswers}/{words.length}
+            Сегодня правильных ответов: {todayProgress?.correctAnswersToday || 0}
           </p>
           
           <div className="space-y-4">
@@ -341,7 +352,7 @@ export default function Game() {
       <GameHeader
         currentWordIndex={currentWordIndex}
         totalWords={words.length}
-        correctAnswers={correctAnswers}
+        correctAnswersToday={todayProgress?.correctAnswersToday || 0}
         onSettingsClick={handleSettingsClick}
       />
 
