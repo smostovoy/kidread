@@ -63,25 +63,28 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
   // Play letter sound from укр folder
   const playUkrLetterSound = (letter: string) => {
     const audio = new Audio(`/audio/letters/укр/${letter}.mp3`);
+    let fallbackUsed = false;
     
-    audio.addEventListener('error', () => {
-      // Fallback to Web Speech API if file not found
-      if ('speechSynthesis' in window) {
+    const useFallback = () => {
+      if (!fallbackUsed && 'speechSynthesis' in window) {
+        fallbackUsed = true;
+        console.log(`Audio file not found for letter: ${letter}, using Web Speech API`);
         const utterance = new SpeechSynthesisUtterance(letter);
-        utterance.lang = 'uk-UA';
+        utterance.lang = 'ru-RU'; // Changed to Russian for better pronunciation
         utterance.rate = 0.7;
         speechSynthesis.speak(utterance);
       }
+    };
+    
+    audio.addEventListener('error', useFallback);
+    audio.addEventListener('canplaythrough', () => {
+      // File exists and is ready to play
+      console.log(`Playing audio file for letter: ${letter}`);
     });
 
     audio.play().catch(() => {
-      // Fallback if audio fails
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(letter);
-        utterance.lang = 'uk-UA';
-        utterance.rate = 0.7;
-        speechSynthesis.speak(utterance);
-      }
+      // Fallback if audio fails to play
+      useFallback();
     });
   };
 
