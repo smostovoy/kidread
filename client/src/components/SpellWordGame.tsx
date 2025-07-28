@@ -61,8 +61,8 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
   const { playLetterSound } = useAudio();
 
   // Play letter sound from рос folder
-  const playUkrLetterSound = (letter: string) => {
-    const audio = new Audio(`/audio/letters/рос/${letter}.mp3`);
+  const playRusLetterSound = (letter: string) => {
+    const audio = new Audio(`/audio/letters/рос/${letter.toUpperCase()}.mp3`);
     
     audio.addEventListener('error', () => {
       console.log(`Russian audio not found for letter: ${letter}, using Web Speech API`);
@@ -90,7 +90,7 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
 
   const handleLetterClick = (letter: string) => {
     if (disabled || showResult) return;
-    playUkrLetterSound(letter);
+    playRusLetterSound(letter);
   };
 
   const handleDragStart = (letter: string, index: number) => {
