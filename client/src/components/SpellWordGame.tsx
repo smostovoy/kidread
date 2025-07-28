@@ -56,10 +56,11 @@ const PICTURE_EMOJIS: Record<string, string> = {
 export function SpellWordGame({ word, availableLetters, onWordComplete, disabled }: SpellWordGameProps) {
   const [selectedLetters, setSelectedLetters] = useState<string[]>([]);
   const [usedLetterIndices, setUsedLetterIndices] = useState<Set<number>>(new Set());
+  const [showResult, setShowResult] = useState<'correct' | 'incorrect' | null>(null);
   const { playLetterSound } = useAudio();
 
   const handleLetterSelect = (letter: string, index: number) => {
-    if (disabled || usedLetterIndices.has(index)) return;
+    if (disabled || usedLetterIndices.has(index) || showResult) return;
 
     playLetterSound(letter);
     
@@ -74,14 +75,19 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
       const spelledWord = newSelectedLetters.join('');
       const isCorrect = spelledWord === word.word;
       
+      // Show result immediately
+      setShowResult(isCorrect ? 'correct' : 'incorrect');
+      
+      // Wait a moment to show result, then proceed
       setTimeout(() => {
+        setShowResult(null);
         onWordComplete(isCorrect);
-      }, 500);
+      }, isCorrect ? 1500 : 2500);
     }
   };
 
   const handleLetterRemove = (removeIndex: number) => {
-    if (disabled) return;
+    if (disabled || showResult) return;
 
     const newSelectedLetters = selectedLetters.filter((_, i) => i !== removeIndex);
     
@@ -145,10 +151,34 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
         ))}
       </div>
 
+      {/* Result Display */}
+      {showResult && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center mb-4"
+        >
+          {showResult === 'correct' ? (
+            <div className="text-6xl text-green-500">
+              <div className="text-8xl mb-2">🎉</div>
+              <p className="text-2xl font-bold text-green-600">Правильно!</p>
+            </div>
+          ) : (
+            <div className="text-6xl text-red-500">
+              <div className="text-8xl mb-2">❌</div>
+              <p className="text-2xl font-bold text-red-600">Попробуй ещё раз!</p>
+              <p className="text-lg text-gray-600 mt-2">Правильно: {word.word}</p>
+            </div>
+          )}
+        </motion.div>
+      )}
+
       {/* Progress indicator */}
-      <div className="text-center text-child-text">
-        <p className="text-xl font-bold">{selectedLetters.length} / {word.word.length} букв</p>
-      </div>
+      {!showResult && (
+        <div className="text-center text-child-text">
+          <p className="text-xl font-bold">{selectedLetters.length} / {word.word.length} букв</p>
+        </div>
+      )}
     </div>
   );
 }
