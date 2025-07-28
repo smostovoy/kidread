@@ -21,15 +21,17 @@ export function useAudio() {
   }, []);
 
   const playLetterSound = useCallback((letter: string) => {
-    // Try to play custom audio first, fallback to Web Speech API
-    const customAudioPath = `/audio/letters/${letter.toLowerCase()}.mp3`;
+    // Use Russian audio folder for Cyrillic letters
+    const customAudioPath = `/audio/letters/рос/${letter.toUpperCase()}.mp3`;
     
     // Check if custom audio exists
     fetch(customAudioPath, { method: 'HEAD' })
       .then(response => {
         if (response.ok) {
+          console.log(`Playing Russian audio for letter: ${letter}`);
           playCustomAudio(customAudioPath);
         } else {
+          console.log(`Russian audio not found for letter: ${letter}, using Web Speech API`);
           // Fallback to Web Speech API
           try {
             const utterance = new SpeechSynthesisUtterance(letter);
@@ -43,6 +45,7 @@ export function useAudio() {
         }
       })
       .catch(() => {
+        console.log(`Failed to check audio for letter: ${letter}, using Web Speech API`);
         // Fallback to Web Speech API
         try {
           const utterance = new SpeechSynthesisUtterance(letter);
