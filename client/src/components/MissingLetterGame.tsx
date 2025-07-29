@@ -93,16 +93,38 @@ export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onL
     e.preventDefault();
   };
 
+  const handleSpeakerClick = () => {
+    if (disabled) return;
+    
+    // Use Web Speech API to pronounce the word
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(word.word);
+      utterance.lang = 'ru-RU';
+      utterance.rate = 0.8;
+      speechSynthesis.speak(utterance);
+    }
+  };
+
   return (
     <div className="flex flex-col items-center space-y-8">
-      {/* Picture */}
-      <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        className="text-8xl mb-4"
-      >
-        {emoji}
-      </motion.div>
+      {/* Picture and Speaker */}
+      <div className="text-center">
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          className="text-8xl mb-4"
+        >
+          {emoji}
+        </motion.div>
+        <motion.div 
+          className="text-4xl mb-2 cursor-pointer hover:scale-110 transition-transform"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={handleSpeakerClick}
+        >
+          🔊
+        </motion.div>
+      </div>
 
       {/* Word with missing letter */}
       <div className="flex gap-2 mb-8">
