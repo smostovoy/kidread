@@ -58,7 +58,8 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
   const [usedLetterIndices, setUsedLetterIndices] = useState<Set<number>>(new Set());
   const [showResult, setShowResult] = useState<'correct' | 'incorrect' | null>(null);
   const [draggedLetter, setDraggedLetter] = useState<{letter: string, index: number} | null>(null);
-  const { playLetterSound } = useAudio();
+  const [incorrectLetterIndex, setIncorrectLetterIndex] = useState<number | null>(null);
+  const { playLetterSound, playTryAgain } = useAudio();
 
   const handleLetterClick = (letter: string) => {
     if (disabled || showResult) return;
@@ -79,7 +80,25 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
     
     const { letter, index } = draggedLetter;
     
-    // Create new arrays with the letter at the correct position
+    // Check if this letter is correct for this position
+    const correctLetter = word.word[dropIndex];
+    const isCorrect = letter === correctLetter;
+    
+    if (!isCorrect) {
+      // Show red highlight and play error sound
+      setIncorrectLetterIndex(dropIndex);
+      playTryAgain();
+      
+      // Remove the highlight after animation
+      setTimeout(() => {
+        setIncorrectLetterIndex(null);
+        setDraggedLetter(null);
+      }, 800);
+      
+      return;
+    }
+    
+    // Letter is correct, add it
     const newSelectedLetters = [...selectedLetters];
     newSelectedLetters[dropIndex] = letter;
     
@@ -93,16 +112,15 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
     const filledPositions = newSelectedLetters.filter(l => l).length;
     if (filledPositions === word.word.length) {
       const spelledWord = newSelectedLetters.join('');
-      const isCorrect = spelledWord === word.word;
       
       // Show result immediately
-      setShowResult(isCorrect ? 'correct' : 'incorrect');
+      setShowResult('correct');
       
       // Wait a moment to show result, then proceed
       setTimeout(() => {
         setShowResult(null);
-        onWordComplete(isCorrect);
-      }, isCorrect ? 1500 : 2500);
+        onWordComplete(true);
+      }, 1500);
     }
   };
 
@@ -184,16 +202,23 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
         {Array.from({ length: word.word.length }).map((_, index) => (
           <motion.div
             key={index}
-            className={`w-20 h-20 border-4 rounded-xl flex items-center justify-center text-4xl font-black text-black shadow-lg transition-colors ${
-              selectedLetters[index] 
-                ? 'border-blue-500 bg-gray-100 cursor-pointer hover:bg-blue-100' 
-                : 'border-dashed border-gray-400 bg-gray-50'
+            className={`w-20 h-20 border-4 rounded-xl flex items-center justify-center text-4xl font-black text-black shadow-lg transition-all duration-300 ${
+              incorrectLetterIndex === index
+                ? 'border-red-500 bg-red-100 animate-pulse'
+                : selectedLetters[index] 
+                  ? 'border-blue-500 bg-gray-100 cursor-pointer hover:bg-blue-100' 
+                  : 'border-dashed border-gray-400 bg-gray-50'
             }`}
             whileHover={{ scale: selectedLetters[index] ? 1.05 : 1.02 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => selectedLetters[index] && handleLetterRemove(index)}
             onDrop={() => handleDrop(index)}
             onDragOver={handleDragOver}
+            animate={incorrectLetterIndex === index ? { 
+              x: [-10, 10, -10, 10, 0],
+              scale: [1, 1.1, 1]
+            } : {}}
+            transition={{ duration: 0.6 }}
           >
             {selectedLetters[index] || ''}
           </motion.div>
