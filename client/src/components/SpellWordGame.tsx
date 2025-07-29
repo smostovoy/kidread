@@ -170,7 +170,7 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
     return PICTURE_EMOJIS[word.image] || '❓';
   };
 
-  const handlePictureClick = () => {
+  const handleSpeakerClick = () => {
     if (disabled || showResult) return;
     
     // Use Web Speech API to pronounce the word
@@ -186,15 +186,17 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
     <div className="space-y-8">
       {/* Picture Display */}
       <div className="text-center">
+        <div className="text-8xl mb-4">
+          {getPictureEmoji(word)}
+        </div>
         <motion.div 
-          className="text-8xl mb-4 cursor-pointer hover:scale-110 transition-transform"
+          className="text-4xl mb-2 cursor-pointer hover:scale-110 transition-transform"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
-          onClick={handlePictureClick}
+          onClick={handleSpeakerClick}
         >
-          {getPictureEmoji(word)}
+          🔊
         </motion.div>
-        <div className="text-4xl mb-2">🔊</div>
       </div>
 
       {/* Selected Letters Display */}
