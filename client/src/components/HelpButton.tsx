@@ -29,7 +29,7 @@ export function HelpButton({ gameType, currentMixType }: HelpButtonProps) {
     <>
       {/* Help Button */}
       <motion.button
-        className="fixed top-4 right-4 w-12 h-12 bg-blue-500 text-white rounded-full text-xl font-bold hover:bg-blue-600 transition-colors shadow-lg z-50"
+        className="w-12 h-12 bg-blue-500 text-white rounded-full text-xl font-bold hover:bg-blue-600 transition-colors shadow-lg"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         onClick={() => setShowHelp(!showHelp)}
@@ -44,7 +44,7 @@ export function HelpButton({ gameType, currentMixType }: HelpButtonProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]"
             onClick={() => setShowHelp(false)}
           >
             <motion.div

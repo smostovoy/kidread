@@ -11,7 +11,7 @@ import { ExtraLetterGame } from "@/components/ExtraLetterGame";
 import { SpellWordGame } from "@/components/SpellWordGame";
 import { MixGame } from "@/components/MixGame";
 import { CelebrationOverlay } from "@/components/CelebrationOverlay";
-import { HelpButton } from "@/components/HelpButton";
+
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 
@@ -363,15 +363,11 @@ export default function Game() {
         onSettingsClick={handleSettingsClick}
       />
 
-      <HelpButton 
-        gameType={gameType} 
-        currentMixType={currentMixType}
-      />
-
       <main className="max-w-6xl mx-auto px-4 pb-8">
         <GameMenu 
           currentGameType={gameType}
           onGameTypeChange={handleGameTypeChange}
+          currentMixType={currentMixType}
         />
 
         {gameType === 'picture-match' && (
