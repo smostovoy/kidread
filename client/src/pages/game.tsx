@@ -11,6 +11,7 @@ import { ExtraLetterGame } from "@/components/ExtraLetterGame";
 import { SpellWordGame } from "@/components/SpellWordGame";
 import { MixGame } from "@/components/MixGame";
 import { CelebrationOverlay } from "@/components/CelebrationOverlay";
+import { HelpButton } from "@/components/HelpButton";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 
@@ -21,6 +22,7 @@ export default function Game() {
   const [gameCompleted, setGameCompleted] = useState(false);
   const [selectedPicture, setSelectedPicture] = useState<Word | null>(null);
   const [gameType, setGameType] = useState<GameType>('picture-match');
+  const [currentMixType, setCurrentMixType] = useState<string>('');
   const [sessionId] = useState(() => {
     // Check if we have a session ID in localStorage
     const stored = localStorage.getItem('russian-game-session');
@@ -361,6 +363,11 @@ export default function Game() {
         onSettingsClick={handleSettingsClick}
       />
 
+      <HelpButton 
+        gameType={gameType} 
+        currentMixType={currentMixType}
+      />
+
       <main className="max-w-6xl mx-auto px-4 pb-8">
         <GameMenu 
           currentGameType={gameType}
@@ -459,6 +466,7 @@ export default function Game() {
             word={currentWord}
             onAnswer={handleMixAnswer}
             disabled={!!selectedPicture || showCelebration}
+            onMixTypeChange={setCurrentMixType}
           />
         )}
       </main>

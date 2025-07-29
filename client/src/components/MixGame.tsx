@@ -12,6 +12,7 @@ interface MixGameProps {
   word: Word;
   onAnswer: (isCorrect: boolean) => void;
   disabled: boolean;
+  onMixTypeChange?: (mixType: string) => void;
 }
 
 const GAME_TYPE_NAMES: Record<Exclude<GameType, 'mix'>, string> = {
@@ -28,7 +29,7 @@ const GAME_TYPE_ICONS: Record<Exclude<GameType, 'mix'>, string> = {
   'spell-word': '✏️'
 };
 
-export function MixGame({ word, onAnswer, disabled }: MixGameProps) {
+export function MixGame({ word, onAnswer, disabled, onMixTypeChange }: MixGameProps) {
   // Randomly select game type for this word
   const [currentMixType, setCurrentMixType] = useState<Exclude<GameType, 'mix'>>(() => {
     const gameTypes: Array<Exclude<GameType, 'mix'>> = ['picture-match', 'missing-letter', 'extra-letter', 'spell-word'];
@@ -38,8 +39,15 @@ export function MixGame({ word, onAnswer, disabled }: MixGameProps) {
   // Reset game type when word changes
   useEffect(() => {
     const gameTypes: Array<Exclude<GameType, 'mix'>> = ['picture-match', 'missing-letter', 'extra-letter', 'spell-word'];
-    setCurrentMixType(gameTypes[Math.floor(Math.random() * gameTypes.length)]);
-  }, [word.id]);
+    const newType = gameTypes[Math.floor(Math.random() * gameTypes.length)];
+    setCurrentMixType(newType);
+    onMixTypeChange?.(newType);
+  }, [word.id, onMixTypeChange]);
+
+  // Notify parent of initial mix type
+  useEffect(() => {
+    onMixTypeChange?.(currentMixType);
+  }, [currentMixType, onMixTypeChange]);
 
   // Fetch data based on current mix type
   const { data: distractors = [], isLoading: distractorsLoading } = useQuery<Word[]>({
