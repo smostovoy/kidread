@@ -204,7 +204,7 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
         {Array.from({ length: word.word.length }).map((_, index) => (
           <motion.div
             key={index}
-            className={`w-20 h-20 border-4 rounded-xl flex items-center justify-center text-4xl font-black text-black shadow-lg transition-all duration-300 ${
+            className={`w-20 h-20 border-4 rounded-xl flex items-center justify-center text-4xl font-black text-black shadow-lg transition-all duration-300 drop-zone no-select ${
               incorrectLetterIndex === index
                 ? 'border-red-500 bg-red-100 animate-pulse'
                 : selectedLetters[index] 
@@ -247,7 +247,7 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
         {availableLetters.map((letter, index) => (
           <motion.div
             key={index}
-            className={`w-20 h-20 rounded-xl text-3xl font-black transition-all shadow-lg cursor-pointer select-none ${
+            className={`w-20 h-20 rounded-xl text-3xl font-black transition-all shadow-lg cursor-pointer select-none draggable no-select ${
               usedLetterIndices.has(index)
                 ? 'bg-gray-300 text-gray-600 border-2 border-gray-400 cursor-not-allowed'
                 : 'bg-blue-500 text-white hover:bg-blue-600 border-2 border-blue-500 hover:border-blue-600'

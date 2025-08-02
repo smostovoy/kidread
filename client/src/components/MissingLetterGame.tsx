@@ -136,9 +136,9 @@ export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onL
             transition={{ delay: index * 0.1 }}
             className={`
               w-16 h-16 flex items-center justify-center text-3xl font-bold
-              rounded-lg border-2 transition-colors
+              rounded-lg border-2 transition-colors no-select
               ${index === missingLetterIndex 
-                ? 'border-dashed border-blue-400 bg-blue-50 text-transparent cursor-pointer' 
+                ? 'border-dashed border-blue-400 bg-blue-50 text-transparent cursor-pointer drop-zone' 
                 : 'border-gray-300 bg-white text-gray-800 cursor-pointer hover:bg-blue-50'
               }
             `}
@@ -166,7 +166,7 @@ export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onL
             onDragStart={() => handleDragStart(letter)}
             onDragEnd={handleDragEnd}
             className={`
-              w-20 h-20 text-4xl font-bold rounded-xl transition-all duration-200 cursor-pointer select-none
+              w-20 h-20 text-4xl font-bold rounded-xl transition-all duration-200 cursor-pointer select-none draggable no-select
               ${disabled 
                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
                 : 'bg-gradient-to-br from-purple-400 to-pink-400 text-white shadow-lg hover:shadow-xl hover:from-purple-500 hover:to-pink-500'

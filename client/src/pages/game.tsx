@@ -355,7 +355,7 @@ export default function Game() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="h-screen flex flex-col overflow-hidden">
       <GameHeader
         currentWordIndex={currentWordIndex}
         totalWords={words.length}
@@ -363,7 +363,7 @@ export default function Game() {
         onSettingsClick={handleSettingsClick}
       />
 
-      <main className="max-w-6xl mx-auto px-4 pb-8">
+      <main className="flex-1 overflow-y-auto max-w-6xl mx-auto px-4 pb-8 w-full">
         <GameMenu 
           currentGameType={gameType}
           onGameTypeChange={handleGameTypeChange}

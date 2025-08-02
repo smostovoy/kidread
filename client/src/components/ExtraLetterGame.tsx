@@ -141,7 +141,7 @@ export function ExtraLetterGame({ word, wordWithExtraLetter, extraLetterIndex, o
             onDragEnd={handleDragEnd}
             className={`
               w-16 h-16 flex items-center justify-center text-3xl font-bold
-              rounded-lg border-2 transition-all duration-200 cursor-pointer select-none
+              rounded-lg border-2 transition-all duration-200 cursor-pointer select-none draggable no-select
               ${disabled 
                 ? 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed' 
                 : 'border-gray-300 bg-white text-gray-800 hover:border-red-400 hover:bg-red-50 hover:text-red-600'
@@ -157,7 +157,7 @@ export function ExtraLetterGame({ word, wordWithExtraLetter, extraLetterIndex, o
       <motion.div
         className={`
           w-32 h-32 flex items-center justify-center text-6xl rounded-2xl border-4 border-dashed
-          transition-all duration-200 cursor-pointer
+          transition-all duration-200 cursor-pointer drop-zone no-select
           ${draggedLetter 
             ? 'border-red-400 bg-red-50 scale-110' 
             : 'border-gray-400 bg-gray-50'
