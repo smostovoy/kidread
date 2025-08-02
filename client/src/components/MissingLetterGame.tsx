@@ -57,6 +57,7 @@ const PICTURE_EMOJIS: Record<string, string> = {
 export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onLetterSelect, disabled }: MissingLetterGameProps) {
   const { playLetterSound } = useAudio();
   const [draggedLetter, setDraggedLetter] = useState<string | null>(null);
+  const [touchDragLetter, setTouchDragLetter] = useState<string | null>(null);
   
   const wordArray = word.word.split('');
   const correctLetter = wordArray[missingLetterIndex];
@@ -90,6 +91,31 @@ export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onL
   };
 
   const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  // Touch handlers for mobile
+  const handleTouchStart = (e: React.TouchEvent, letter: string) => {
+    if (disabled) return;
+    setTouchDragLetter(letter);
+    e.preventDefault();
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchDragLetter) return;
+    e.preventDefault();
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent, isDropZone = false) => {
+    if (!touchDragLetter) return;
+    
+    if (isDropZone) {
+      const correctLetter = wordArray[missingLetterIndex];
+      const isCorrect = touchDragLetter === correctLetter;
+      onLetterSelect(touchDragLetter, isCorrect);
+    }
+    
+    setTouchDragLetter(null);
     e.preventDefault();
   };
 
@@ -145,6 +171,7 @@ export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onL
             onClick={index !== missingLetterIndex ? () => handleWordLetterClick(letter, index) : undefined}
             onDrop={index === missingLetterIndex ? handleDrop : undefined}
             onDragOver={index === missingLetterIndex ? handleDragOver : undefined}
+            onTouchEnd={index === missingLetterIndex ? (e) => handleTouchEnd(e, true) : undefined}
           >
             {index === missingLetterIndex ? '❓' : letter}
           </motion.div>
@@ -165,6 +192,9 @@ export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onL
             draggable={!disabled}
             onDragStart={() => handleDragStart(letter)}
             onDragEnd={handleDragEnd}
+            onTouchStart={(e) => handleTouchStart(e, letter)}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={(e) => handleTouchEnd(e)}
             className={`
               w-20 h-20 text-4xl font-bold rounded-xl transition-all duration-200 cursor-pointer select-none draggable no-select
               ${disabled 

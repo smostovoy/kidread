@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { type Word } from "@shared/schema";
 import { useAudio } from "@/hooks/useAudio";
 
@@ -59,6 +59,7 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
   const [showResult, setShowResult] = useState<'correct' | 'incorrect' | null>(null);
   const [draggedLetter, setDraggedLetter] = useState<{letter: string, index: number} | null>(null);
   const [incorrectLetterIndex, setIncorrectLetterIndex] = useState<number | null>(null);
+  const [touchDragData, setTouchDragData] = useState<{letter: string, sourceIndex: number} | null>(null);
   const { playLetterSound, playTryAgain } = useAudio();
 
   const handleLetterClick = (letter: string) => {
@@ -125,6 +126,66 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
   };
 
   const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  // Touch handlers for mobile drag&drop
+  const handleTouchStart = (e: React.TouchEvent, letter: string, index: number) => {
+    if (disabled || showResult || usedLetterIndices.has(index)) return;
+    
+    setTouchDragData({ letter, sourceIndex: index });
+    e.preventDefault();
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchDragData) return;
+    e.preventDefault();
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent, dropIndex?: number) => {
+    if (!touchDragData) return;
+    
+    if (dropIndex !== undefined) {
+      // This is a drop zone, handle the drop
+      const { letter, sourceIndex } = touchDragData;
+      
+      // Check if this letter is correct for this position
+      const correctLetter = word.word[dropIndex];
+      const isCorrect = letter === correctLetter;
+      
+      if (!isCorrect) {
+        // Show red highlight and play error sound
+        setIncorrectLetterIndex(dropIndex);
+        playTryAgain();
+        
+        // Remove the highlight after animation
+        setTimeout(() => {
+          setIncorrectLetterIndex(null);
+        }, 800);
+      } else {
+        // Letter is correct, add it
+        const newSelectedLetters = [...selectedLetters];
+        newSelectedLetters[dropIndex] = letter;
+        
+        const newUsedIndices = new Set(Array.from(usedLetterIndices).concat([sourceIndex]));
+        
+        setSelectedLetters(newSelectedLetters);
+        setUsedLetterIndices(newUsedIndices);
+
+        // Check if word is complete
+        const filledPositions = newSelectedLetters.filter(l => l).length;
+        if (filledPositions === word.word.length) {
+          const spelledWord = newSelectedLetters.join('');
+          setShowResult(spelledWord === word.word ? 'correct' : 'incorrect');
+          
+          setTimeout(() => {
+            onWordComplete(spelledWord === word.word);
+          }, 1500);
+        }
+      }
+    }
+    
+    setTouchDragData(null);
     e.preventDefault();
   };
 
@@ -216,6 +277,7 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
             onClick={() => selectedLetters[index] && handleLetterRemove(index)}
             onDrop={() => handleDrop(index)}
             onDragOver={handleDragOver}
+            onTouchEnd={(e) => handleTouchEnd(e, index)}
             animate={incorrectLetterIndex === index ? { 
               x: [-10, 10, -10, 10, 0],
               scale: [1, 1.1, 1]
@@ -258,6 +320,9 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
             draggable={!usedLetterIndices.has(index) && !disabled}
             onDragStart={() => handleDragStart(letter, index)}
             onDragEnd={handleDragEnd}
+            onTouchStart={(e) => handleTouchStart(e, letter, index)}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={(e) => handleTouchEnd(e)}
             style={{
               display: 'flex',
               alignItems: 'center',

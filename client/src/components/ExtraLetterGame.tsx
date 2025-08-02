@@ -57,6 +57,7 @@ const PICTURE_EMOJIS: Record<string, string> = {
 export function ExtraLetterGame({ word, wordWithExtraLetter, extraLetterIndex, onLetterRemove, disabled }: ExtraLetterGameProps) {
   const { playLetterSound } = useAudio();
   const [draggedLetter, setDraggedLetter] = useState<{letter: string, index: number} | null>(null);
+  const [touchDragData, setTouchDragData] = useState<{letter: string, index: number} | null>(null);
   
   const wordArray = wordWithExtraLetter.split('');
   const emoji = PICTURE_EMOJIS[word.image] || '❓';
@@ -87,6 +88,31 @@ export function ExtraLetterGame({ word, wordWithExtraLetter, extraLetterIndex, o
   };
 
   const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  // Touch handlers for mobile
+  const handleTouchStart = (e: React.TouchEvent, letterIndex: number) => {
+    if (disabled) return;
+    const letter = wordArray[letterIndex];
+    setTouchDragData({ letter, index: letterIndex });
+    e.preventDefault();
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchDragData) return;
+    e.preventDefault();
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent, isTrashZone = false) => {
+    if (!touchDragData) return;
+    
+    if (isTrashZone) {
+      const isCorrect = touchDragData.index === extraLetterIndex;
+      onLetterRemove(touchDragData.index, isCorrect);
+    }
+    
+    setTouchDragData(null);
     e.preventDefault();
   };
 
@@ -139,6 +165,9 @@ export function ExtraLetterGame({ word, wordWithExtraLetter, extraLetterIndex, o
             draggable={!disabled}
             onDragStart={() => handleDragStart(index)}
             onDragEnd={handleDragEnd}
+            onTouchStart={(e) => handleTouchStart(e, index)}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={(e) => handleTouchEnd(e)}
             className={`
               w-16 h-16 flex items-center justify-center text-3xl font-bold
               rounded-lg border-2 transition-all duration-200 cursor-pointer select-none draggable no-select
@@ -168,6 +197,7 @@ export function ExtraLetterGame({ word, wordWithExtraLetter, extraLetterIndex, o
         transition={{ delay: 1 }}
         onDrop={handleDropOnTrash}
         onDragOver={handleDragOver}
+        onTouchEnd={(e) => handleTouchEnd(e, true)}
       >
         🗑️
       </motion.div>
