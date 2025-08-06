@@ -234,14 +234,15 @@ export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onL
       {/* Touch Drag Preview */}
       {dragPreview && (
         <motion.div
-          className="fixed pointer-events-none z-50 w-16 h-16 bg-purple-500 text-white rounded-xl flex items-center justify-center text-2xl font-bold shadow-2xl border-2 border-purple-300"
+          className="fixed pointer-events-none z-50 w-20 h-20 bg-purple-500 text-white rounded-xl flex items-center justify-center text-4xl font-bold shadow-2xl border-2 border-purple-300 opacity-80"
           style={{
-            left: dragPreview.x - 32,
-            top: dragPreview.y - 32,
+            left: dragPreview.x - 40,
+            top: dragPreview.y - 40,
+            transform: 'translate(0, -20px)', // Поднимаем немного выше пальца
           }}
-          initial={{ scale: 0.8, opacity: 0.8 }}
-          animate={{ scale: 1.1, opacity: 0.9 }}
-          transition={{ duration: 0.1 }}
+          initial={{ scale: 1 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 0 }}
         >
           {dragPreview.letter}
         </motion.div>
