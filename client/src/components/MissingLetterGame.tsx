@@ -58,7 +58,7 @@ export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onL
   const { playLetterSound } = useAudio();
   const [draggedLetter, setDraggedLetter] = useState<string | null>(null);
   const [touchDragLetter, setTouchDragLetter] = useState<string | null>(null);
-  const [dragPreview, setDragPreview] = useState<{x: number, y: number, letter: string, offsetX: number, offsetY: number} | null>(null);
+  const [dragPreview, setDragPreview] = useState<{x: number, y: number, letter: string, offsetX: number, offsetY: number, width: number, height: number} | null>(null);
   
   const wordArray = word.word.split('');
   const correctLetter = wordArray[missingLetterIndex];
@@ -102,16 +102,18 @@ export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onL
     const element = e.currentTarget as HTMLElement;
     const rect = element.getBoundingClientRect();
     
-    const offsetX = touch.clientX - (rect.left + rect.width / 2);
-    const offsetY = touch.clientY - (rect.top + rect.height / 2);
+    const offsetX = touch.clientX - rect.left;
+    const offsetY = touch.clientY - rect.top;
     
     setTouchDragLetter(letter);
     setDragPreview({ 
-      x: rect.left + rect.width / 2, 
-      y: rect.top + rect.height / 2, 
+      x: rect.left, 
+      y: rect.top, 
       letter,
       offsetX,
-      offsetY
+      offsetY,
+      width: rect.width,
+      height: rect.height
     });
     e.stopPropagation();
     e.preventDefault();
@@ -250,14 +252,17 @@ export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onL
       {/* Touch Drag Preview */}
       {dragPreview && (
         <motion.div
-          className="fixed pointer-events-none z-50 w-20 h-20 bg-purple-500 text-white rounded-xl flex items-center justify-center text-4xl font-bold shadow-2xl border-2 border-purple-300 opacity-90"
+          className="fixed pointer-events-none z-50 bg-purple-500 text-white rounded-xl flex items-center justify-center font-bold shadow-2xl border-2 border-purple-300 opacity-90"
           style={{
-            left: dragPreview.x - 40,
-            top: dragPreview.y - 40,
+            left: dragPreview.x,
+            top: dragPreview.y,
+            width: dragPreview.width,
+            height: dragPreview.height,
+            fontSize: `${Math.min(dragPreview.width, dragPreview.height) * 0.5}px`,
           }}
           initial={{ scale: 1 }}
-          animate={{ scale: 1.05 }}
-          transition={{ duration: 0.1 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 0 }}
         >
           {dragPreview.letter}
         </motion.div>

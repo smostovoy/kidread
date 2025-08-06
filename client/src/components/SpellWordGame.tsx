@@ -61,7 +61,7 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
   const [incorrectLetterIndex, setIncorrectLetterIndex] = useState<number | null>(null);
   const [touchDragData, setTouchDragData] = useState<{letter: string, sourceIndex: number} | null>(null);
   const [isIOS, setIsIOS] = useState(false);
-  const [dragPreview, setDragPreview] = useState<{x: number, y: number, letter: string, offsetX: number, offsetY: number} | null>(null);
+  const [dragPreview, setDragPreview] = useState<{x: number, y: number, letter: string, offsetX: number, offsetY: number, width: number, height: number} | null>(null);
   const { playLetterSound, playTryAgain } = useAudio();
 
   // Detect iOS for special handling
@@ -145,17 +145,19 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
     const element = e.currentTarget as HTMLElement;
     const rect = element.getBoundingClientRect();
     
-    // Вычисляем offset от центра элемента до точки касания
-    const offsetX = touch.clientX - (rect.left + rect.width / 2);
-    const offsetY = touch.clientY - (rect.top + rect.height / 2);
+    // Вычисляем offset от левого верхнего угла элемента до точки касания
+    const offsetX = touch.clientX - rect.left;
+    const offsetY = touch.clientY - rect.top;
     
     setTouchDragData({ letter, sourceIndex: index });
     setDragPreview({ 
-      x: rect.left + rect.width / 2, 
-      y: rect.top + rect.height / 2, 
+      x: rect.left, 
+      y: rect.top, 
       letter,
       offsetX,
-      offsetY
+      offsetY,
+      width: rect.width,
+      height: rect.height
     });
     
     // iOS Safari requires stopPropagation
@@ -425,14 +427,17 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
       {/* Touch Drag Preview */}
       {dragPreview && (
         <motion.div
-          className="fixed pointer-events-none z-50 w-20 h-20 bg-blue-500 text-white rounded-xl flex items-center justify-center text-3xl font-bold shadow-2xl border-2 border-blue-300 opacity-90"
+          className="fixed pointer-events-none z-50 bg-blue-500 text-white rounded-xl flex items-center justify-center font-bold shadow-2xl border-2 border-blue-300 opacity-90"
           style={{
-            left: dragPreview.x - 40,
-            top: dragPreview.y - 40,
+            left: dragPreview.x,
+            top: dragPreview.y,
+            width: dragPreview.width,
+            height: dragPreview.height,
+            fontSize: `${Math.min(dragPreview.width, dragPreview.height) * 0.4}px`,
           }}
           initial={{ scale: 1 }}
-          animate={{ scale: 1.05 }}
-          transition={{ duration: 0.1 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 0 }}
         >
           {dragPreview.letter}
         </motion.div>
