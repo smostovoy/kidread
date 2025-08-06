@@ -60,7 +60,14 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
   const [draggedLetter, setDraggedLetter] = useState<{letter: string, index: number} | null>(null);
   const [incorrectLetterIndex, setIncorrectLetterIndex] = useState<number | null>(null);
   const [touchDragData, setTouchDragData] = useState<{letter: string, sourceIndex: number} | null>(null);
+  const [isIOS, setIsIOS] = useState(false);
   const { playLetterSound, playTryAgain } = useAudio();
+
+  // Detect iOS for special handling
+  useEffect(() => {
+    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !('MSStream' in window);
+    setIsIOS(isIOSDevice);
+  }, []);
 
   const handleLetterClick = (letter: string) => {
     if (disabled || showResult) return;
@@ -129,23 +136,32 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
     e.preventDefault();
   };
 
-  // Touch handlers for mobile drag&drop
+  // Touch handlers for mobile drag&drop (iOS compatible)
   const handleTouchStart = (e: React.TouchEvent, letter: string, index: number) => {
     if (disabled || showResult || usedLetterIndices.has(index)) return;
     
     setTouchDragData({ letter, sourceIndex: index });
+    
+    // iOS Safari requires stopPropagation
+    e.stopPropagation();
     e.preventDefault();
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!touchDragData) return;
+    
+    // iOS Safari requires stopPropagation
+    e.stopPropagation();
     e.preventDefault();
   };
 
   const handleTouchEnd = (e: React.TouchEvent, dropIndex?: number) => {
     if (!touchDragData) return;
     
-    if (dropIndex !== undefined) {
+    // iOS Safari compatible touch end handling
+    const touch = e.changedTouches?.[0] || e.touches?.[0];
+    
+    if (dropIndex !== undefined && touch) {
       // This is a drop zone, handle the drop
       const { letter, sourceIndex } = touchDragData;
       
@@ -183,9 +199,22 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
           }, 1500);
         }
       }
+    } else if (touch && !dropIndex) {
+      // Try to find drop zone under touch point for iOS
+      const elementUnderTouch = document.elementFromPoint(touch.clientX, touch.clientY);
+      const dropZone = elementUnderTouch?.closest('[data-drop-index]');
+      
+      if (dropZone) {
+        const dropIdx = parseInt(dropZone.getAttribute('data-drop-index') || '');
+        if (!isNaN(dropIdx)) {
+          // Recursively call with found drop index
+          return handleTouchEnd(e, dropIdx);
+        }
+      }
     }
     
     setTouchDragData(null);
+    e.stopPropagation();
     e.preventDefault();
   };
 
@@ -278,6 +307,7 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
             onDrop={() => handleDrop(index)}
             onDragOver={handleDragOver}
             onTouchEnd={(e) => handleTouchEnd(e, index)}
+            data-drop-index={index}
             animate={incorrectLetterIndex === index ? { 
               x: [-10, 10, -10, 10, 0],
               scale: [1, 1.1, 1]

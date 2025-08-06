@@ -94,28 +94,43 @@ export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onL
     e.preventDefault();
   };
 
-  // Touch handlers for mobile
+  // Touch handlers for mobile (iOS compatible)
   const handleTouchStart = (e: React.TouchEvent, letter: string) => {
     if (disabled) return;
     setTouchDragLetter(letter);
+    e.stopPropagation();
     e.preventDefault();
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!touchDragLetter) return;
+    e.stopPropagation();
     e.preventDefault();
   };
 
   const handleTouchEnd = (e: React.TouchEvent, isDropZone = false) => {
     if (!touchDragLetter) return;
     
-    if (isDropZone) {
+    const touch = e.changedTouches?.[0] || e.touches?.[0];
+    
+    if (isDropZone && touch) {
       const correctLetter = wordArray[missingLetterIndex];
       const isCorrect = touchDragLetter === correctLetter;
       onLetterSelect(touchDragLetter, isCorrect);
+    } else if (touch && !isDropZone) {
+      // Try to find drop zone under touch point for iOS
+      const elementUnderTouch = document.elementFromPoint(touch.clientX, touch.clientY);
+      const dropZone = elementUnderTouch?.closest('[data-missing-letter]');
+      
+      if (dropZone) {
+        const correctLetter = wordArray[missingLetterIndex];
+        const isCorrect = touchDragLetter === correctLetter;
+        onLetterSelect(touchDragLetter, isCorrect);
+      }
     }
     
     setTouchDragLetter(null);
+    e.stopPropagation();
     e.preventDefault();
   };
 
@@ -172,6 +187,7 @@ export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onL
             onDrop={index === missingLetterIndex ? handleDrop : undefined}
             onDragOver={index === missingLetterIndex ? handleDragOver : undefined}
             onTouchEnd={index === missingLetterIndex ? (e) => handleTouchEnd(e, true) : undefined}
+            data-missing-letter={index === missingLetterIndex ? "true" : undefined}
           >
             {index === missingLetterIndex ? '❓' : letter}
           </motion.div>

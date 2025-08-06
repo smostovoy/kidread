@@ -91,28 +91,42 @@ export function ExtraLetterGame({ word, wordWithExtraLetter, extraLetterIndex, o
     e.preventDefault();
   };
 
-  // Touch handlers for mobile
+  // Touch handlers for mobile (iOS compatible)
   const handleTouchStart = (e: React.TouchEvent, letterIndex: number) => {
     if (disabled) return;
     const letter = wordArray[letterIndex];
     setTouchDragData({ letter, index: letterIndex });
+    e.stopPropagation();
     e.preventDefault();
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!touchDragData) return;
+    e.stopPropagation();
     e.preventDefault();
   };
 
   const handleTouchEnd = (e: React.TouchEvent, isTrashZone = false) => {
     if (!touchDragData) return;
     
-    if (isTrashZone) {
+    const touch = e.changedTouches?.[0] || e.touches?.[0];
+    
+    if (isTrashZone && touch) {
       const isCorrect = touchDragData.index === extraLetterIndex;
       onLetterRemove(touchDragData.index, isCorrect);
+    } else if (touch && !isTrashZone) {
+      // Try to find trash zone under touch point for iOS
+      const elementUnderTouch = document.elementFromPoint(touch.clientX, touch.clientY);
+      const trashZone = elementUnderTouch?.closest('[data-trash-zone]');
+      
+      if (trashZone) {
+        const isCorrect = touchDragData.index === extraLetterIndex;
+        onLetterRemove(touchDragData.index, isCorrect);
+      }
     }
     
     setTouchDragData(null);
+    e.stopPropagation();
     e.preventDefault();
   };
 
@@ -198,6 +212,7 @@ export function ExtraLetterGame({ word, wordWithExtraLetter, extraLetterIndex, o
         onDrop={handleDropOnTrash}
         onDragOver={handleDragOver}
         onTouchEnd={(e) => handleTouchEnd(e, true)}
+        data-trash-zone="true"
       >
         🗑️
       </motion.div>

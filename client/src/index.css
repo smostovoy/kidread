@@ -64,6 +64,9 @@
     -webkit-overflow-scrolling: touch;
     position: fixed;
     width: 100%;
+    /* iOS Safari specific fixes */
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
   }
 
   body {
@@ -94,10 +97,22 @@
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
   }
   
   .drop-zone {
     touch-action: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* iOS Safari specific fixes */
+  .ios-touch-fix {
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    touch-action: manipulation;
   }
 
   /* Prevent text selection during drag */
