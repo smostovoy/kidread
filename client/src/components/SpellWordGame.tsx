@@ -362,7 +362,7 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
 
 
       {/* Available Letters */}
-      <div className="grid grid-cols-5 gap-4 max-w-lg mx-auto">
+      <div className="flex flex-wrap justify-center gap-4 max-w-2xl mx-auto">
         {availableLetters.map((letter, index) => (
           <motion.div
             key={index}
