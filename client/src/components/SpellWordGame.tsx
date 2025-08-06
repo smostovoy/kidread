@@ -61,7 +61,7 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
   const [incorrectLetterIndex, setIncorrectLetterIndex] = useState<number | null>(null);
   const [touchDragData, setTouchDragData] = useState<{letter: string, sourceIndex: number} | null>(null);
   const [isIOS, setIsIOS] = useState(false);
-  const [dragPreview, setDragPreview] = useState<{x: number, y: number, letter: string} | null>(null);
+  const [dragPreview, setDragPreview] = useState<{x: number, y: number, letter: string, offsetX: number, offsetY: number} | null>(null);
   const { playLetterSound, playTryAgain } = useAudio();
 
   // Detect iOS for special handling
@@ -142,8 +142,21 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
     if (disabled || showResult || usedLetterIndices.has(index)) return;
     
     const touch = e.touches[0];
+    const element = e.currentTarget as HTMLElement;
+    const rect = element.getBoundingClientRect();
+    
+    // Вычисляем offset от центра элемента до точки касания
+    const offsetX = touch.clientX - (rect.left + rect.width / 2);
+    const offsetY = touch.clientY - (rect.top + rect.height / 2);
+    
     setTouchDragData({ letter, sourceIndex: index });
-    setDragPreview({ x: touch.clientX, y: touch.clientY, letter });
+    setDragPreview({ 
+      x: rect.left + rect.width / 2, 
+      y: rect.top + rect.height / 2, 
+      letter,
+      offsetX,
+      offsetY
+    });
     
     // iOS Safari requires stopPropagation
     e.stopPropagation();
@@ -151,10 +164,15 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!touchDragData) return;
+    if (!touchDragData || !dragPreview) return;
     
     const touch = e.touches[0];
-    setDragPreview({ x: touch.clientX, y: touch.clientY, letter: touchDragData.letter });
+    
+    setDragPreview({ 
+      ...dragPreview,
+      x: touch.clientX - dragPreview.offsetX, 
+      y: touch.clientY - dragPreview.offsetY
+    });
     
     // iOS Safari requires stopPropagation
     e.stopPropagation();
@@ -407,15 +425,14 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
       {/* Touch Drag Preview */}
       {dragPreview && (
         <motion.div
-          className="fixed pointer-events-none z-50 w-20 h-20 bg-blue-500 text-white rounded-xl flex items-center justify-center text-3xl font-bold shadow-2xl border-2 border-blue-300 opacity-80"
+          className="fixed pointer-events-none z-50 w-20 h-20 bg-blue-500 text-white rounded-xl flex items-center justify-center text-3xl font-bold shadow-2xl border-2 border-blue-300 opacity-90"
           style={{
             left: dragPreview.x - 40,
             top: dragPreview.y - 40,
-            transform: 'translate(0, -20px)', // Поднимаем немного выше пальца
           }}
           initial={{ scale: 1 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 0 }}
+          animate={{ scale: 1.05 }}
+          transition={{ duration: 0.1 }}
         >
           {dragPreview.letter}
         </motion.div>
