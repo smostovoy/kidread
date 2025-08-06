@@ -58,6 +58,7 @@ export function ExtraLetterGame({ word, wordWithExtraLetter, extraLetterIndex, o
   const { playLetterSound } = useAudio();
   const [draggedLetter, setDraggedLetter] = useState<{letter: string, index: number} | null>(null);
   const [touchDragData, setTouchDragData] = useState<{letter: string, index: number} | null>(null);
+  const [dragPreview, setDragPreview] = useState<{x: number, y: number, letter: string} | null>(null);
   
   const wordArray = wordWithExtraLetter.split('');
   const emoji = PICTURE_EMOJIS[word.image] || '❓';
@@ -95,13 +96,17 @@ export function ExtraLetterGame({ word, wordWithExtraLetter, extraLetterIndex, o
   const handleTouchStart = (e: React.TouchEvent, letterIndex: number) => {
     if (disabled) return;
     const letter = wordArray[letterIndex];
+    const touch = e.touches[0];
     setTouchDragData({ letter, index: letterIndex });
+    setDragPreview({ x: touch.clientX, y: touch.clientY, letter });
     e.stopPropagation();
     e.preventDefault();
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!touchDragData) return;
+    const touch = e.touches[0];
+    setDragPreview({ x: touch.clientX, y: touch.clientY, letter: touchDragData.letter });
     e.stopPropagation();
     e.preventDefault();
   };
@@ -126,6 +131,7 @@ export function ExtraLetterGame({ word, wordWithExtraLetter, extraLetterIndex, o
     }
     
     setTouchDragData(null);
+    setDragPreview(null);
     e.stopPropagation();
     e.preventDefault();
   };
@@ -217,7 +223,21 @@ export function ExtraLetterGame({ word, wordWithExtraLetter, extraLetterIndex, o
         🗑️
       </motion.div>
 
-
+      {/* Touch Drag Preview */}
+      {dragPreview && (
+        <motion.div
+          className="fixed pointer-events-none z-50 w-16 h-16 bg-red-500 text-white rounded-xl flex items-center justify-center text-2xl font-bold shadow-2xl border-2 border-red-300"
+          style={{
+            left: dragPreview.x - 32,
+            top: dragPreview.y - 32,
+          }}
+          initial={{ scale: 0.8, opacity: 0.8 }}
+          animate={{ scale: 1.1, opacity: 0.9 }}
+          transition={{ duration: 0.1 }}
+        >
+          {dragPreview.letter}
+        </motion.div>
+      )}
     </div>
   );
 }

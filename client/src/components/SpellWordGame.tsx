@@ -61,6 +61,7 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
   const [incorrectLetterIndex, setIncorrectLetterIndex] = useState<number | null>(null);
   const [touchDragData, setTouchDragData] = useState<{letter: string, sourceIndex: number} | null>(null);
   const [isIOS, setIsIOS] = useState(false);
+  const [dragPreview, setDragPreview] = useState<{x: number, y: number, letter: string} | null>(null);
   const { playLetterSound, playTryAgain } = useAudio();
 
   // Detect iOS for special handling
@@ -140,7 +141,9 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
   const handleTouchStart = (e: React.TouchEvent, letter: string, index: number) => {
     if (disabled || showResult || usedLetterIndices.has(index)) return;
     
+    const touch = e.touches[0];
     setTouchDragData({ letter, sourceIndex: index });
+    setDragPreview({ x: touch.clientX, y: touch.clientY, letter });
     
     // iOS Safari requires stopPropagation
     e.stopPropagation();
@@ -149,6 +152,9 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!touchDragData) return;
+    
+    const touch = e.touches[0];
+    setDragPreview({ x: touch.clientX, y: touch.clientY, letter: touchDragData.letter });
     
     // iOS Safari requires stopPropagation
     e.stopPropagation();
@@ -214,6 +220,7 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
     }
     
     setTouchDragData(null);
+    setDragPreview(null);
     e.stopPropagation();
     e.preventDefault();
   };
@@ -395,6 +402,22 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
             ))}
           </div>
         </div>
+      )}
+
+      {/* Touch Drag Preview */}
+      {dragPreview && (
+        <motion.div
+          className="fixed pointer-events-none z-50 w-16 h-16 bg-blue-500 text-white rounded-xl flex items-center justify-center text-2xl font-bold shadow-2xl border-2 border-blue-300"
+          style={{
+            left: dragPreview.x - 32,
+            top: dragPreview.y - 32,
+          }}
+          initial={{ scale: 0.8, opacity: 0.8 }}
+          animate={{ scale: 1.1, opacity: 0.9 }}
+          transition={{ duration: 0.1 }}
+        >
+          {dragPreview.letter}
+        </motion.div>
       )}
     </div>
   );

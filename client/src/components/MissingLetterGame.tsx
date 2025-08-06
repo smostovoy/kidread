@@ -58,6 +58,7 @@ export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onL
   const { playLetterSound } = useAudio();
   const [draggedLetter, setDraggedLetter] = useState<string | null>(null);
   const [touchDragLetter, setTouchDragLetter] = useState<string | null>(null);
+  const [dragPreview, setDragPreview] = useState<{x: number, y: number, letter: string} | null>(null);
   
   const wordArray = word.word.split('');
   const correctLetter = wordArray[missingLetterIndex];
@@ -97,13 +98,17 @@ export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onL
   // Touch handlers for mobile (iOS compatible)
   const handleTouchStart = (e: React.TouchEvent, letter: string) => {
     if (disabled) return;
+    const touch = e.touches[0];
     setTouchDragLetter(letter);
+    setDragPreview({ x: touch.clientX, y: touch.clientY, letter });
     e.stopPropagation();
     e.preventDefault();
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!touchDragLetter) return;
+    const touch = e.touches[0];
+    setDragPreview({ x: touch.clientX, y: touch.clientY, letter: touchDragLetter });
     e.stopPropagation();
     e.preventDefault();
   };
@@ -130,6 +135,7 @@ export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onL
     }
     
     setTouchDragLetter(null);
+    setDragPreview(null);
     e.stopPropagation();
     e.preventDefault();
   };
@@ -224,6 +230,22 @@ export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onL
           </motion.div>
         ))}
       </div>
+
+      {/* Touch Drag Preview */}
+      {dragPreview && (
+        <motion.div
+          className="fixed pointer-events-none z-50 w-16 h-16 bg-purple-500 text-white rounded-xl flex items-center justify-center text-2xl font-bold shadow-2xl border-2 border-purple-300"
+          style={{
+            left: dragPreview.x - 32,
+            top: dragPreview.y - 32,
+          }}
+          initial={{ scale: 0.8, opacity: 0.8 }}
+          animate={{ scale: 1.1, opacity: 0.9 }}
+          transition={{ duration: 0.1 }}
+        >
+          {dragPreview.letter}
+        </motion.div>
+      )}
     </div>
   );
 }
