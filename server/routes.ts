@@ -126,28 +126,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const wordText = word.word;
-      const russianLetters = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ';
       
-      // Get all letters from the word (including duplicates)
-      const wordLetters = wordText.split('');
-      
-      // Calculate how many additional letters we need (total should be 10)
-      const targetTotal = 10;
-      const additionalLettersNeeded = targetTotal - wordLetters.length;
-      
-      // Generate random letters that are not in the word
-      const uniqueWordLetters = new Set(wordLetters);
-      const availableLetters = russianLetters.split('').filter(letter => !uniqueWordLetters.has(letter));
-      const additionalLetters = availableLetters
-        .sort(() => Math.random() - 0.5)
-        .slice(0, Math.max(0, additionalLettersNeeded));
-      
-      // Combine word letters with additional letters and shuffle
-      const allLetters = [...wordLetters, ...additionalLetters]
-        .sort(() => Math.random() - 0.5);
+      // Get all letters from the word (including duplicates) and shuffle them
+      const wordLetters = wordText.split('').sort(() => Math.random() - 0.5);
       
       res.json({
-        availableLetters: allLetters
+        availableLetters: wordLetters
       });
     } catch (error) {
       console.error("Error getting spell letters:", error);
