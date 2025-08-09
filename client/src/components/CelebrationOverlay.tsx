@@ -1,32 +1,121 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useAudio } from "@/hooks/useAudio";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
+import { CELEBRATION_MESSAGES, GAME_CONFIG, ANIMATION_VARIANTS } from "@/lib/constants";
 
 interface CelebrationOverlayProps {
   isVisible: boolean;
   onNext: () => void;
 }
 
+interface ParticleProps {
+  delay: number;
+  x: number;
+  y: number;
+  color: string;
+  size: string;
+}
+
+function Particle({ delay, x, y, color, size }: ParticleProps) {
+  return (
+    <motion.div
+      className="particle absolute pointer-events-none select-none"
+      style={{ 
+        left: x, 
+        top: y,
+        fontSize: size,
+        color
+      }}
+      initial={{ scale: 0, rotate: 0, opacity: 0 }}
+      animate={{ 
+        scale: [0, 1.5, 0],
+        rotate: [0, 180, 360],
+        opacity: [0, 1, 0],
+        y: [0, -200, -400],
+        x: [0, Math.random() * 100 - 50]
+      }}
+      transition={{ 
+        duration: 2,
+        delay,
+        ease: "easeOut"
+      }}
+    >
+      ⭐
+    </motion.div>
+  );
+}
+
+function Confetti({ delay }: { delay: number }) {
+  const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#f0932b', '#eb4d4b', '#6c5ce7'];
+  const shapes = ['●', '▲', '■', '♦'];
+  
+  return (
+    <motion.div
+      className="absolute pointer-events-none"
+      style={{
+        left: Math.random() * window.innerWidth,
+        top: -20,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        fontSize: Math.random() * 20 + 10
+      }}
+      initial={{ y: -20, rotate: 0, opacity: 1 }}
+      animate={{ 
+        y: window.innerHeight + 20,
+        rotate: Math.random() * 720 - 360,
+        opacity: [1, 1, 0]
+      }}
+      transition={{ 
+        duration: Math.random() * 2 + 3,
+        delay,
+        ease: "easeIn"
+      }}
+    >
+      {shapes[Math.floor(Math.random() * shapes.length)]}
+    </motion.div>
+  );
+}
+
 export function CelebrationOverlay({ isVisible, onNext }: CelebrationOverlayProps) {
   const { playApplause } = useAudio();
   const hasPlayedSound = useRef(false);
 
+  // Memoize celebration message to prevent re-renders
+  const celebrationMessage = useMemo(() => {
+    return CELEBRATION_MESSAGES[Math.floor(Math.random() * CELEBRATION_MESSAGES.length)];
+  }, [isVisible]);
+
+  // Memoize particles to prevent recreation on every render
+  const particles = useMemo(() => {
+    return Array.from({ length: 12 }, (_, i) => ({
+      key: i,
+      delay: i * 0.1,
+      x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 800),
+      y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 600),
+      color: ['#ffd700', '#ff69b4', '#00ced1', '#ff6347', '#9370db'][Math.floor(Math.random() * 5)],
+      size: `${Math.random() * 30 + 20}px`
+    }));
+  }, [isVisible]);
+
+  const confettiPieces = useMemo(() => {
+    return Array.from({ length: 20 }, (_, i) => ({
+      key: `confetti-${i}`,
+      delay: Math.random() * 0.5
+    }));
+  }, [isVisible]);
+
   useEffect(() => {
     if (isVisible) {
-      // Only play sound once per celebration
       if (!hasPlayedSound.current) {
         playApplause();
         hasPlayedSound.current = true;
       }
       
-      // Automatically advance to next word after 1.5 seconds (faster)
       const timer = setTimeout(() => {
         onNext();
-      }, 1500);
+      }, GAME_CONFIG.celebrationDuration);
       
       return () => clearTimeout(timer);
     } else {
-      // Reset sound flag when celebration is hidden
       hasPlayedSound.current = false;
     }
   }, [isVisible, playApplause, onNext]);
@@ -35,66 +124,31 @@ export function CelebrationOverlay({ isVisible, onNext }: CelebrationOverlayProp
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          className="fixed inset-0 celebration-overlay z-50 flex items-center justify-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
+          className="celebration-overlay gpu-accelerated"
+          {...ANIMATION_VARIANTS.fadeIn}
         >
-          <div className="text-center">
-            {/* Fireworks Effects */}
-            <div className="relative">
-              <motion.div 
-                className="star text-6xl absolute"
-                style={{ top: -100, left: -50 }}
-                animate={{ 
-                  scale: [0.8, 1.2, 0.8],
-                  opacity: [0.3, 1, 0.3],
-                  rotate: [0, 180, 360]
-                }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                ⭐
-              </motion.div>
-              <motion.div 
-                className="star text-4xl absolute"
-                style={{ top: -80, right: -30 }}
-                animate={{ 
-                  scale: [0.8, 1.2, 0.8],
-                  opacity: [0.3, 1, 0.3]
-                }}
-                transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-              >
-                ✨
-              </motion.div>
-              <motion.div 
-                className="star text-5xl absolute"
-                style={{ bottom: -90, left: -40 }}
-                animate={{ 
-                  scale: [0.8, 1.2, 0.8],
-                  opacity: [0.3, 1, 0.3]
-                }}
-                transition={{ duration: 2, repeat: Infinity, delay: 1 }}
-              >
-                🌟
-              </motion.div>
-              <motion.div 
-                className="star text-3xl absolute"
-                style={{ bottom: -70, right: -60 }}
-                animate={{ 
-                  scale: [0.8, 1.2, 0.8],
-                  opacity: [0.3, 1, 0.3]
-                }}
-                transition={{ duration: 2, repeat: Infinity, delay: 1.5 }}
-              >
-                💫
-              </motion.div>
-            </div>
-            
-            {/* Success Message */}
-            <motion.div 
-              className="bg-white rounded-3xl p-8 shadow-2xl mx-4"
-              initial={{ scale: 0.5, rotate: -5 }}
+          {/* Confetti */}
+          {confettiPieces.map(({ key, delay }) => (
+            <Confetti key={key} delay={delay} />
+          ))}
+          
+          {/* Star particles */}
+          {particles.map(({ key, delay, x, y, color, size }) => (
+            <Particle 
+              key={key} 
+              delay={delay} 
+              x={x} 
+              y={y} 
+              color={color} 
+              size={size}
+            />
+          ))}
+
+          {/* Central celebration content */}
+          <div className="relative z-10 text-center">
+            <motion.div
+              className="mb-8"
+              initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ 
                 type: "spring",
@@ -103,53 +157,59 @@ export function CelebrationOverlay({ isVisible, onNext }: CelebrationOverlayProp
                 delay: 0.2
               }}
             >
-              <motion.div 
-                className="text-8xl mb-4"
-                animate={{ 
-                  scale: [1, 1.2, 1],
-                  rotate: [0, 10, -10, 0]
-                }}
+              <div className="text-8xl mb-4 animate-bounce-in">🎉</div>
+              <motion.h2 
+                className="text-6xl font-bold text-white mb-4"
+                initial={{ scale: 0 }}
+                animate={{ scale: [0, 1.2, 1] }}
                 transition={{ 
-                  duration: 1,
-                  repeat: Infinity,
-                  repeatType: "reverse"
+                  duration: 0.6,
+                  delay: 0.3,
+                  times: [0, 0.6, 1]
                 }}
               >
-                🎉
-              </motion.div>
-              <h2 className="text-4xl font-bold text-secondary mb-4">Отлично!</h2>
-              <p className="text-2xl text-child-text mb-6">Ты правильно выбрал картинку!</p>
-              
-              {/* Applause Animation */}
-              <div className="flex justify-center space-x-4 mb-6">
-                {[0, 0.2, 0.4].map((delay, index) => (
-                  <motion.span
-                    key={index}
-                    className="text-4xl"
-                    animate={{ 
-                      scale: [1, 1.3, 1],
-                      rotate: [0, 15, -15, 0]
-                    }}
-                    transition={{
-                      duration: 0.6,
-                      repeat: Infinity,
-                      delay: delay
-                    }}
-                  >
-                    👏
-                  </motion.span>
-                ))}
-              </div>
-              
-              <motion.div
-                className="text-lg text-gray-600 mt-4"
-                animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-              >
-                Переходим к следующему слову...
-              </motion.div>
+                {celebrationMessage}
+              </motion.h2>
             </motion.div>
+
+            {/* Success animation ring */}
+            <motion.div
+              className="absolute inset-0 border-8 border-white rounded-full opacity-20"
+              initial={{ scale: 0 }}
+              animate={{ scale: [0, 1, 1.2] }}
+              transition={{ 
+                duration: 1.5,
+                ease: "easeOut",
+                delay: 0.1
+              }}
+            />
+
+            {/* Pulsing background effect */}
+            <motion.div
+              className="absolute inset-0 bg-gradient-radial from-white/20 to-transparent rounded-full"
+              animate={{ 
+                scale: [1, 1.5, 1],
+                opacity: [0.3, 0.1, 0.3]
+              }}
+              transition={{ 
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
           </div>
+
+          {/* Progress indicator */}
+          <motion.div 
+            className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1 }}
+          >
+            <div className="bg-white/20 rounded-full px-6 py-2 backdrop-blur-sm">
+              <p className="text-white text-sm font-medium">Переходим к следующему слову...</p>
+            </div>
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>

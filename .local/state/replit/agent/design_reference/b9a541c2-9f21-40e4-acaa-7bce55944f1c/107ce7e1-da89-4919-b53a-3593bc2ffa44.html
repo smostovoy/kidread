@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Учимся Читать - Reading App for Kids</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    primary: '#4F46E5',
+                    secondary: '#10B981',
+                    accent: '#F59E0B',
+                    childBg: '#F8FAFC',
+                    childText: '#1F2937'
+                },
+                fontFamily: {
+                    'child': ['Comic Sans MS', 'cursive', 'system-ui']
+                },
+                animation: {
+                    'bounce-slow': 'bounce 2s infinite',
+                    'pulse-slow': 'pulse 3s infinite',
+                    'wiggle': 'wiggle 0.5s ease-in-out',
+                    'celebrate': 'celebrate 1s ease-in-out',
+                    'firework': 'firework 1.5s ease-out'
+                },
+                keyframes: {
+                    wiggle: {
+                        '0%, 100%': { transform: 'rotate(-3deg)' },
+                        '50%': { transform: 'rotate(3deg)' },
+                    },
+                    celebrate: {
+                        '0%': { transform: 'scale(1) rotate(0deg)' },
+                        '50%': { transform: 'scale(1.2) rotate(5deg)' },
+                        '100%': { transform: 'scale(1) rotate(0deg)' },
+                    },
+                    firework: {
+                        '0%': { transform: 'scale(0) rotate(0deg)', opacity: '1' },
+                        '50%': { transform: 'scale(1.5) rotate(180deg)', opacity: '0.8' },
+                        '100%': { transform: 'scale(2) rotate(360deg)', opacity: '0' },
+                    }
+                }
+            }
+        }
+    };
+    </script>
+    <style>
+        /* Custom styles for child-friendly interactions */
+        .letter-button:hover {
+            transform: scale(1.1);
+            transition: transform 0.2s ease;
+        }
+        
+        .picture-option {
+            transition: all 0.3s ease;
+        }
+        
+        .picture-option:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+        }
+        
+        .celebration-overlay {
+            background: linear-gradient(45deg, #4F46E5, #10B981, #F59E0B);
+            background-size: 400% 400%;
+            animation: gradient 2s ease infinite;
+        }
+        
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .star {
+            position: absolute;
+            color: #F59E0B;
+            animation: twinkle 2s infinite;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen font-child">
+    <!-- @COMPONENT: GameHeader [progress, settings] -->
+    <header class="bg-white shadow-lg p-4 mb-6">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-primary flex items-center">
+                <span class="text-3xl mr-2">📚</span>
+                Учимся Читать
+            </h1>
+            
+            <!-- Progress Bar -->
+            <div class="flex items-center space-x-4">
+                <div class="bg-gray-200 rounded-full h-4 w-32">
+                    <div class="bg-secondary rounded-full h-4 transition-all duration-500 ease-out" style="width: 30%" data-bind="progress"></div>
+                </div>
+                <span class="text-lg font-semibold text-childText" data-bind="currentWord">3/10</span>
+            </div>
+            
+            <button class="bg-accent hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded-full transition-colors duration-200" data-event="click:showSettings">
+                ⚙️ Настройки
+            </button>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: GameHeader -->
+
+    <!-- @COMPONENT: MainGameArea [currentWord, pictures, gameState] -->
+    <main class="max-w-6xl mx-auto px-4 pb-8">
+        <!-- Current Word Display -->
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold text-childText mb-6">Найди картинку к слову:</h2>
+            
+            <!-- @STATE: currentWord:string = "СЛОН" -->
+            <div class="flex justify-center space-x-4 mb-8" id="word-display">
+                <!-- @MAP: currentWord.split('').map((letter, index) => ( -->
+                <button class="letter-button bg-white border-4 border-primary text-primary font-bold text-6xl w-20 h-20 rounded-2xl shadow-lg hover:bg-primary hover:text-white transition-all duration-300" 
+                        data-event="click:playLetterSound" 
+                        data-letter="С" 
+                        data-index="0">
+                    С
+                </button>
+                <button class="letter-button bg-white border-4 border-primary text-primary font-bold text-6xl w-20 h-20 rounded-2xl shadow-lg hover:bg-primary hover:text-white transition-all duration-300" 
+                        data-event="click:playLetterSound" 
+                        data-letter="Л" 
+                        data-index="1">
+                    Л
+                </button>
+                <button class="letter-button bg-white border-4 border-primary text-primary font-bold text-6xl w-20 h-20 rounded-2xl shadow-lg hover:bg-primary hover:text-white transition-all duration-300" 
+                        data-event="click:playLetterSound" 
+                        data-letter="О" 
+                        data-index="2">
+                    О
+                </button>
+                <button class="letter-button bg-white border-4 border-primary text-primary font-bold text-6xl w-20 h-20 rounded-2xl shadow-lg hover:bg-primary hover:text-white transition-all duration-300" 
+                        data-event="click:playLetterSound" 
+                        data-letter="Н" 
+                        data-index="3">
+                    Н
+                </button>
+                <!-- @END_MAP )) -->
+            </div>
+        </div>
+
+        <!-- Picture Options Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+            <!-- @MAP: pictureOptions.map(option => ( -->
+            
+            <!-- Correct Answer: Elephant -->
+            <div class="picture-option bg-white rounded-3xl p-6 shadow-xl cursor-pointer border-4 border-transparent hover:border-secondary" 
+                 data-event="click:selectPicture" 
+                 data-correct="true" 
+                 data-word="слон">
+                <!-- Simple elephant illustration - should be pencil sketch style -->
+                <!-- A simple line drawing of an elephant with large ears and trunk -->
+                <img src="https://images.unsplash.com/photo-1564760055775-d63b17a55c44?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=300&h=300" 
+                     alt="Слон" 
+                     class="w-full h-32 object-cover rounded-2xl mb-4"
+                     data-mock-image="true" 
+                     data-implementation="Replace with pencil sketch of elephant">
+                <p class="text-center font-bold text-xl text-childText">🐘</p>
+            </div>
+
+            <!-- Distractor 1: Cat -->
+            <div class="picture-option bg-white rounded-3xl p-6 shadow-xl cursor-pointer border-4 border-transparent hover:border-red-300" 
+                 data-event="click:selectPicture" 
+                 data-correct="false" 
+                 data-word="кот">
+                <!-- A simple line drawing of a sitting cat -->
+                <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=300&h=300" 
+                     alt="Кот" 
+                     class="w-full h-32 object-cover rounded-2xl mb-4"
+                     data-mock-image="true" 
+                     data-implementation="Replace with pencil sketch of cat">
+                <p class="text-center font-bold text-xl text-childText">🐱</p>
+            </div>
+
+            <!-- Distractor 2: Fox -->
+            <div class="picture-option bg-white rounded-3xl p-6 shadow-xl cursor-pointer border-4 border-transparent hover:border-red-300" 
+                 data-event="click:selectPicture" 
+                 data-correct="false" 
+                 data-word="лиса">
+                <!-- A simple line drawing of a fox with bushy tail -->
+                <img src="https://images.unsplash.com/photo-1474511320723-9a56873867b5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=300&h=300" 
+                     alt="Лиса" 
+                     class="w-full h-32 object-cover rounded-2xl mb-4"
+                     data-mock-image="true" 
+                     data-implementation="Replace with pencil sketch of fox">
+                <p class="text-center font-bold text-xl text-childText">🦊</p>
+            </div>
+
+            <!-- Distractor 3: Table -->
+            <div class="picture-option bg-white rounded-3xl p-6 shadow-xl cursor-pointer border-4 border-transparent hover:border-red-300" 
+                 data-event="click:selectPicture" 
+                 data-correct="false" 
+                 data-word="стол">
+                <!-- A simple line drawing of a table -->
+                <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=300&h=300" 
+                     alt="Стол" 
+                     class="w-full h-32 object-cover rounded-2xl mb-4"
+                     data-mock-image="true" 
+                     data-implementation="Replace with pencil sketch of table">
+                <p class="text-center font-bold text-xl text-childText">🪑</p>
+            </div>
+            <!-- @END_MAP )) -->
+        </div>
+
+        <!-- Encouragement Text -->
+        <div class="text-center mt-8">
+            <p class="text-2xl font-semibold text-childText animate-pulse-slow">
+                Нажми на правильную картинку! 🌟
+            </p>
+        </div>
+    </main>
+    <!-- @END_COMPONENT: MainGameArea -->
+
+    <!-- @COMPONENT: CelebrationOverlay [visible, nextWord] -->
+    <!-- Celebration Overlay (Hidden by default) -->
+    <div id="celebration-overlay" class="fixed inset-0 celebration-overlay z-50 flex items-center justify-center hidden">
+        <div class="text-center">
+            <!-- Fireworks Effects -->
+            <div class="relative">
+                <div class="star text-6xl" style="top: -100px; left: -50px;">⭐</div>
+                <div class="star text-4xl" style="top: -80px; right: -30px; animation-delay: 0.5s;">✨</div>
+                <div class="star text-5xl" style="bottom: -90px; left: -40px; animation-delay: 1s;">🌟</div>
+                <div class="star text-3xl" style="bottom: -70px; right: -60px; animation-delay: 1.5s;">💫</div>
+            </div>
+            
+            <!-- Success Message -->
+            <div class="bg-white rounded-3xl p-8 shadow-2xl animate-celebrate mx-4">
+                <div class="text-8xl mb-4">🎉</div>
+                <h2 class="text-4xl font-bold text-secondary mb-4">Отлично!</h2>
+                <p class="text-2xl text-childText mb-6">Ты правильно выбрал картинку!</p>
+                
+                <!-- Applause Animation -->
+                <div class="flex justify-center space-x-4 mb-6">
+                    <span class="text-4xl animate-bounce">👏</span>
+                    <span class="text-4xl animate-bounce" style="animation-delay: 0.2s;">👏</span>
+                    <span class="text-4xl animate-bounce" style="animation-delay: 0.4s;">👏</span>
+                </div>
+                
+                <button id="next-word-btn" class="bg-primary hover:bg-purple-700 text-white font-bold py-4 px-8 rounded-full text-xl transition-colors duration-200">
+                    Следующее слово! 🚀
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: CelebrationOverlay -->
+
+    <!-- @COMPONENT: WordDatabase [words, pictures] -->
+    <!-- Hidden Word Database for Game Logic -->
+    <script type="application/json" id="word-database" data-mock="true">
+    {
+        "words": [
+            {"word": "СЛОН", "image": "elephant", "audio": "slon.mp3"},
+            {"word": "КОТ", "image": "cat", "audio": "kot.mp3"},
+            {"word": "ДОМ", "image": "house", "audio": "dom.mp3"},
+            {"word": "МЯЧ", "image": "ball", "audio": "myach.mp3"},
+            {"word": "ЛИСА", "image": "fox", "audio": "lisa.mp3"},
+            {"word": "СТОЛ", "image": "table", "audio": "stol.mp3"},
+            {"word": "РЫБА", "image": "fish", "audio": "ryba.mp3"},
+            {"word": "СОБАКА", "image": "dog", "audio": "sobaka.mp3"},
+            {"word": "ЦВЕТОК", "image": "flower", "audio": "tsvetok.mp3"},
+            {"word": "МАШИНА", "image": "car", "audio": "mashina.mp3"}
+        ]
+    }
+    </script>
+    <!-- @END_COMPONENT: WordDatabase -->
+
+    <!-- Game Logic JavaScript -->
+    <script>
+    (function() {
+        // TODO: Implement full game logic, audio system, and state management
+        
+        // @STATE: gameState management
+        let currentWordIndex = 2; // Starting with СЛОН (index 2 for demo)
+        let correctAnswers = 0;
+        let totalQuestions = 10;
+        
+        // @FUNCTIONALITY: Letter sound playback
+        document.querySelectorAll('.letter-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const letter = this.dataset.letter;
+                // TODO: Play audio file for letter pronunciation
+                console.log(`Playing sound for letter: ${letter}`);
+                
+                // Visual feedback
+                this.classList.add('animate-wiggle');
+                setTimeout(() => {
+                    this.classList.remove('animate-wiggle');
+                }, 500);
+            });
+        });
+        
+        // @FUNCTIONALITY: Picture selection logic
+        document.querySelectorAll('.picture-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const isCorrect = this.dataset.correct === 'true';
+                
+                if (isCorrect) {
+                    // Show celebration
+                    document.getElementById('celebration-overlay').classList.remove('hidden');
+                    correctAnswers++;
+                    
+                    // TODO: Play applause sound effect
+                    console.log('Playing applause sound');
+                    
+                } else {
+                    // Wrong answer feedback
+                    this.classList.add('animate-wiggle');
+                    this.style.borderColor = '#EF4444';
+                    
+                    setTimeout(() => {
+                        this.classList.remove('animate-wiggle');
+                        this.style.borderColor = 'transparent';
+                    }, 1000);
+                    
+                    // TODO: Play "try again" sound
+                    console.log('Playing try again sound');
+                }
+            });
+        });
+        
+        // @FUNCTIONALITY: Next word progression
+        document.getElementById('next-word-btn').addEventListener('click', function() {
+            document.getElementById('celebration-overlay').classList.add('hidden');
+            
+            // TODO: Load next word and shuffle picture options
+            currentWordIndex++;
+            
+            if (currentWordIndex >= totalQuestions) {
+                // Game completed
+                alert('Поздравляем! Вы прошли все слова!');
+                // TODO: Show completion screen
+            } else {
+                // Load next word
+                console.log(`Loading word ${currentWordIndex + 1}`);
+                // TODO: Update word display and picture options
+            }
+        });
+        
+        // @FUNCTIONALITY: Settings modal
+        document.querySelector('[data-event="click:showSettings"]').addEventListener('click', function() {
+            // TODO: Show settings modal for volume, difficulty, etc.
+            console.log('Opening settings modal');
+        });
+        
+        // @FUNCTIONALITY: Responsive touch interactions for mobile
+        if ('ontouchstart' in window) {
+            document.querySelectorAll('.picture-option, .letter-button').forEach(element => {
+                element.addEventListener('touchstart', function() {
+                    this.style.transform = 'scale(0.95)';
+                });
+                
+                element.addEventListener('touchend', function() {
+                    this.style.transform = '';
+                });
+            });
+        }
+        
+        // @FUNCTIONALITY: Initialize game
+        function initializeGame() {
+            // TODO: Load word database, set up audio system, initialize progress tracking
+            console.log('Game initialized with 10 words');
+        }
+        
+        // Start the game when page loads
+        document.addEventListener('DOMContentLoaded', initializeGame);
+    })();
+    </script>
+</body>
+</html>

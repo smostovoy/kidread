@@ -1,22 +1,57 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
+import { AUDIO_CONFIG } from '@/lib/constants';
 
 export function useAudio() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const activeSourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
 
-  const playCustomAudio = useCallback((audioFile: string) => {
+  // Cleanup function
+  const cleanup = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current = null;
+    }
+    
+    // Stop all active audio sources
+    activeSourcesRef.current.forEach(source => {
+      try {
+        source.stop();
+      } catch (e) {
+        // Source may already be stopped
+      }
+    });
+    activeSourcesRef.current.clear();
+    
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+      audioContextRef.current = null;
+    }
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return cleanup;
+  }, [cleanup]);
+
+  const playCustomAudio = useCallback(async (audioFile: string) => {
     try {
+      // Stop current audio
       if (audioRef.current) {
         audioRef.current.pause();
+        audioRef.current.currentTime = 0;
       }
       
       const audio = new Audio(audioFile);
-      audio.volume = 0.7;
+      audio.volume = AUDIO_CONFIG.defaultVolume;
+      audio.preload = 'auto';
+      
       audioRef.current = audio;
-      audio.play().catch(error => {
-        console.warn('Failed to play custom audio:', error);
-      });
+      
+      await audio.play();
     } catch (error) {
-      console.warn('Custom audio not available:', error);
+      console.warn('Failed to play custom audio:', error);
     }
   }, []);
 
@@ -59,10 +94,23 @@ export function useAudio() {
     });
   }, []);
 
+  const getAudioContext = useCallback(() => {
+    if (!audioContextRef.current) {
+      try {
+        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      } catch (error) {
+        console.warn('Web Audio API not available:', error);
+        return null;
+      }
+    }
+    return audioContextRef.current;
+  }, []);
+
   const playApplause = useCallback(() => {
+    const audioContext = getAudioContext();
+    if (!audioContext) return;
+
     try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      
       // Create a pleasant success sound - ascending musical notes
       const duration = 0.8;
       const sampleRate = audioContext.sampleRate;
@@ -90,17 +138,25 @@ export function useAudio() {
       
       const source = audioContext.createBufferSource();
       source.buffer = buffer;
+      
+      // Track active sources for cleanup
+      activeSourcesRef.current.add(source);
+      source.addEventListener('ended', () => {
+        activeSourcesRef.current.delete(source);
+      });
+      
       source.connect(audioContext.destination);
       source.start();
     } catch (error) {
-      console.warn('Web Audio API not available:', error);
+      console.warn('Failed to play applause sound:', error);
     }
-  }, []);
+  }, [getAudioContext]);
 
   const playTryAgain = useCallback(() => {
+    const audioContext = getAudioContext();
+    if (!audioContext) return;
+
     try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      
       // Create a gentle "try again" sound - descending notes
       const duration = 0.6;
       const sampleRate = audioContext.sampleRate;
@@ -125,16 +181,25 @@ export function useAudio() {
       
       const source = audioContext.createBufferSource();
       source.buffer = buffer;
+      
+      // Track active sources for cleanup
+      activeSourcesRef.current.add(source);
+      source.addEventListener('ended', () => {
+        activeSourcesRef.current.delete(source);
+      });
+      
       source.connect(audioContext.destination);
       source.start();
     } catch (error) {
-      console.warn('Web Audio API not available:', error);
+      console.warn('Failed to play try again sound:', error);
     }
-  }, []);
+  }, [getAudioContext]);
 
   return {
     playLetterSound,
     playApplause,
-    playTryAgain
+    playTryAgain,
+    playCustomAudio,
+    cleanup
   };
 }
