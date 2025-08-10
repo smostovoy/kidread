@@ -11,7 +11,8 @@
       "Bash(PORT=3456 npm run dev)",
       "Bash(lsof:*)",
       "Bash(npm run build:*)",
-      "Bash(npm run deploy:*)"
+      "Bash(npm run deploy:*)",
+      "Bash(grep:*)"
     ],
     "deny": []
   }
