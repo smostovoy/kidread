@@ -63,3 +63,14 @@
 - **Shared Constants**: All emoji mappings in `client/src/lib/constants.ts`
 - **No Duplicates**: Remove duplicate PICTURE_EMOJIS from individual components
 - **Import Pattern**: `import { PICTURE_EMOJIS } from "@/lib/constants"`
+
+### Learning Blacklist System
+- **Purpose**: Exclude words and letters that are too difficult for beginners
+- **Word Blacklist**: Words with irregular spelling, silent letters, or complex pronunciation
+  - Current: "солнце" (silent 'л' makes it difficult for beginners)
+- **Letter Blacklist**: Rare letters with complex usage rules
+  - Current: "ъ" (hard sign - rare and has complex grammatical rules)
+- **Implementation**: 
+  - Server-side filtering in `storage.ts` for word queries
+  - Letter generation filtering in `routes.ts` for game options
+- **Effect**: Blacklisted content never appears in games or letter options

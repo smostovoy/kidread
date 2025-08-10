@@ -12,7 +12,9 @@
       "Bash(lsof:*)",
       "Bash(npm run build:*)",
       "Bash(npm run deploy:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(curl:*)",
+      "Bash(cp:*)"
     ],
     "deny": []
   }

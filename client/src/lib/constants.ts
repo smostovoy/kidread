@@ -148,3 +148,18 @@ export const ANIMATION_VARIANTS = {
     }
   }
 } as const;
+
+// Blacklist for difficult words and letters
+// These are words with non-standard spelling or rare letters that are 
+// exceptions and too complicated for beginner language learners
+export const LEARNING_BLACKLIST = {
+  // Words with irregular spelling, silent letters, or complex pronunciation
+  words: [
+    'солнце',  // silent 'л' - difficult for beginners
+  ],
+  
+  // Letters that are rare, have complex rules, or are exceptions
+  letters: [
+    'ъ',       // hard sign - rare and complex usage rules
+  ]
+} as const;

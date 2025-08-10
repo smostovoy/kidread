@@ -2,11 +2,11 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { type Word } from "@shared/schema";
 import { useAudio } from "@/hooks/useAudio";
-import { PICTURE_EMOJIS } from "@/lib/constants";
+import { GamePictureDisplay } from "@/components/shared/GamePictureDisplay";
+import { DraggableLetter } from "@/components/shared/DraggableLetter";
 import {
   DndContext,
   DragOverlay,
-  useDraggable,
   useDroppable,
   DragEndEvent,
   DragStartEvent,
@@ -22,38 +22,6 @@ interface ExtraLetterGameProps {
   extraLetterIndex: number;
   onLetterRemove: (index: number, isCorrect: boolean) => void;
   disabled?: boolean;
-}
-
-
-// Draggable Letter Component for Extra Letter Game
-function DraggableExtraLetter({ letter, index, disabled }: { letter: string, index: number, disabled: boolean }) {
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: `extra-letter-${index}`,
-    data: { letter, index },
-    disabled,
-  });
-
-  return (
-    <motion.div
-      ref={setNodeRef}
-      {...listeners}
-      {...attributes}
-      initial={{ y: -20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ delay: index * 0.1 }}
-      className={`draggable-element w-16 h-16 flex items-center justify-center text-3xl font-bold rounded-lg border-2 transition-all duration-200 cursor-pointer select-none ${
-        disabled 
-          ? 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed' 
-          : isDragging
-            ? 'border-red-400 bg-red-50 text-red-600 opacity-50'
-            : 'border-gray-300 bg-white text-gray-800 hover:border-red-400 hover:bg-red-50 hover:text-red-600'
-      }`}
-      whileHover={!disabled ? { scale: 1.05 } : {}}
-      whileTap={!disabled ? { scale: 0.95 } : {}}
-    >
-      {letter}
-    </motion.div>
-  );
 }
 
 // Droppable Trash Zone Component
@@ -81,8 +49,10 @@ function TrashZone() {
 }
 
 export function ExtraLetterGame({ word, wordWithExtraLetter, extraLetterIndex, onLetterRemove, disabled }: ExtraLetterGameProps) {
-  const { playLetterSound } = useAudio();
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [removedLetterIndex, setRemovedLetterIndex] = useState<number | null>(null);
+  const [showingResult, setShowingResult] = useState(false);
+  const { playLetterSound } = useAudio();
 
   // Configure sensors for better touch support
   const mouseSensor = useSensor(MouseSensor, {
@@ -101,14 +71,10 @@ export function ExtraLetterGame({ word, wordWithExtraLetter, extraLetterIndex, o
   const sensors = useSensors(mouseSensor, touchSensor);
   
   const wordArray = wordWithExtraLetter.split('');
-  const emoji = PICTURE_EMOJIS[word.image] || '❓';
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
-    const data = event.active.data.current;
-    if (data?.letter) {
-      playLetterSound(data.letter);
-    }
+    // No sound for extra letter game
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -123,7 +89,15 @@ export function ExtraLetterGame({ word, wordWithExtraLetter, extraLetterIndex, o
     // Check if dropped on trash zone
     if (dropData?.isTrash && draggedData.index !== undefined) {
       const isCorrect = draggedData.index === extraLetterIndex;
-      onLetterRemove(draggedData.index, isCorrect);
+      
+      if (isCorrect) {
+        // Remove the letter and celebrate immediately
+        setRemovedLetterIndex(draggedData.index);
+        onLetterRemove(draggedData.index, isCorrect);
+      } else {
+        // For incorrect answers, proceed immediately
+        onLetterRemove(draggedData.index, isCorrect);
+      }
     }
   };
 
@@ -136,52 +110,36 @@ export function ExtraLetterGame({ word, wordWithExtraLetter, extraLetterIndex, o
     };
   };
 
-  const handleSpeakerClick = () => {
-    if (disabled) return;
-    
-    // Use Web Speech API to pronounce the word
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(word.word);
-      utterance.lang = 'ru-RU';
-      utterance.rate = 0.8;
-      speechSynthesis.speak(utterance);
-    }
-  };
-
   const activeItem = getActiveItem();
 
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="flex flex-col items-center space-y-8">
         {/* Picture and Speaker */}
-        <div className="text-center">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="text-8xl mb-4"
-          >
-            {emoji}
-          </motion.div>
-          <motion.div 
-            className="text-4xl mb-2 cursor-pointer hover:scale-110 transition-transform"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleSpeakerClick}
-          >
-            🔊
-          </motion.div>
-        </div>
+        <GamePictureDisplay word={word} disabled={disabled} />
 
         {/* Word with extra letter - draggable */}
         <div className="flex gap-2 mb-8">
-          {wordArray.map((letter, index) => (
-            <DraggableExtraLetter
-              key={index}
-              letter={letter}
-              index={index}
-              disabled={disabled || false}
-            />
-          ))}
+          {wordArray.map((letter, index) => {
+            // Completely hide removed letter to close the gap
+            if (removedLetterIndex === index) {
+              return null;
+            }
+            
+            return (
+              <DraggableLetter
+                key={index}
+                letter={letter}
+                index={index}
+                disabled={false}
+                theme="gray"
+                variant="outline"
+                size="md"
+                idPrefix="extra-letter"
+                onClick={(letter) => playLetterSound(letter)}
+              />
+            );
+          })}
         </div>
 
         {/* Trash Zone */}

@@ -1,7 +1,15 @@
 import { type Word, type InsertWord, type GameProgress, type InsertGameProgress, type UserAnswer, type InsertUserAnswer, words, userAnswers } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, gt, sql, notInArray } from "drizzle-orm";
+import { eq, and, gt, sql, notInArray, notIn } from "drizzle-orm";
 import { randomUUID } from "crypto";
+
+// Import blacklist from constants
+// These are words with non-standard spelling or rare letters that are 
+// exceptions and too complicated for beginner language learners
+const LEARNING_BLACKLIST = {
+  words: ['СОЛНЦЕ', 'СТОЛ'],   // silent 'л' - difficult for beginners, СТОЛ removed per user request
+  letters: ['Ъ']       // hard sign - rare and complex usage rules
+} as const;
 
 export interface IStorage {
   // Word management
@@ -27,6 +35,24 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   private initialized = false;
 
+  // Helper function to check if a word is blacklisted
+  private isWordBlacklisted(word: string): boolean {
+    return LEARNING_BLACKLIST.words.includes(word.toUpperCase());
+  }
+
+  // Helper function to check if a word contains blacklisted letters
+  private containsBlacklistedLetters(word: string): boolean {
+    return LEARNING_BLACKLIST.letters.some(letter => word.toUpperCase().includes(letter));
+  }
+
+  // Filter words to exclude blacklisted ones
+  private filterBlacklistedWords(words: Word[]): Word[] {
+    return words.filter(word => 
+      !this.isWordBlacklisted(word.word) && 
+      !this.containsBlacklistedLetters(word.word)
+    );
+  }
+
   private async ensureInitialized() {
     if (this.initialized) return;
     
@@ -37,7 +63,18 @@ export class DatabaseStorage implements IStorage {
   private async initializeWords() {
     // Check if words already exist
     const existingWords = await db.select().from(words).limit(1);
-    if (existingWords.length > 0) return;
+    if (existingWords.length > 0) {
+      // Check if we need to add new words (current count vs expected)
+      const currentCount = await db.select({ count: sql<number>`count(*)` }).from(words);
+      const expectedCount = 69; // Original 39 + 30 new words
+      
+      if (Number(currentCount[0]?.count || 0) >= expectedCount) {
+        return; // Already has all words
+      }
+      
+      // Need to reinitialize with new words
+      console.log('Adding new words to existing database...');
+    }
 
     const initialWords: InsertWord[] = [
       { word: "СЛОН", image: "elephant", audio: "slon.mp3" },
@@ -79,7 +116,39 @@ export class DatabaseStorage implements IStorage {
       { word: "ВОЛК", image: "wolf", audio: "volk.mp3" },
       { word: "ЛЯГУШКА", image: "frog", audio: "lyagushka.mp3" },
       { word: "БАБОЧКА", image: "butterfly", audio: "babochka.mp3" },
-      { word: "ПЧЕЛА", image: "bee", audio: "pchela.mp3" }
+      { word: "ПЧЕЛА", image: "bee", audio: "pchela.mp3" },
+      
+      // Additional 30 words for more practice
+      { word: "МАМА", image: "mother", audio: "mama.mp3" },
+      { word: "ПАПА", image: "father", audio: "papa.mp3" },
+      { word: "ДЯДЯ", image: "uncle", audio: "dyadya.mp3" },
+      { word: "ТЁТЯ", image: "aunt", audio: "tyotya.mp3" },
+      { word: "БРАТ", image: "brother", audio: "brat.mp3" },
+      { word: "СЕСТРА", image: "sister", audio: "sestra.mp3" },
+      { word: "ДЕДУШКА", image: "grandfather", audio: "dedushka.mp3" },
+      { word: "БАБУШКА", image: "grandmother", audio: "babushka.mp3" },
+      { word: "ВОДА", image: "water", audio: "voda.mp3" },
+      { word: "ОГОНЬ", image: "fire", audio: "ogon.mp3" },
+      { word: "ЗЕМЛЯ", image: "earth", audio: "zemlya.mp3" },
+      { word: "НЕБО", image: "sky", audio: "nebo.mp3" },
+      { word: "ВЕТЕР", image: "wind", audio: "veter.mp3" },
+      { word: "СНЕГ", image: "snow", audio: "sneg.mp3" },
+      { word: "ДОЖДЬ", image: "rain", audio: "dozhd.mp3" },
+      { word: "ЛЕТО", image: "summer", audio: "leto.mp3" },
+      { word: "ЗИМА", image: "winter", audio: "zima.mp3" },
+      { word: "ВЕСНА", image: "spring", audio: "vesna.mp3" },
+      { word: "ОСЕНЬ", image: "autumn", audio: "osen.mp3" },
+      { word: "УТРО", image: "morning", audio: "utro.mp3" },
+      { word: "ДЕНЬ", image: "day", audio: "den.mp3" },
+      { word: "ВЕЧЕР", image: "evening", audio: "vecher.mp3" },
+      { word: "НОЧЬ", image: "night", audio: "noch.mp3" },
+      { word: "ШКОЛА", image: "school", audio: "shkola.mp3" },
+      { word: "ПАРК", image: "park", audio: "park.mp3" },
+      { word: "МАГАЗИН", image: "store", audio: "magazin.mp3" },
+      { word: "БОЛЬНИЦА", image: "hospital", audio: "bolnitsa.mp3" },
+      { word: "ТЕАТР", image: "theater", audio: "teatr.mp3" },
+      { word: "МУЗЕЙ", image: "museum", audio: "muzey.mp3" },
+      { word: "РЫНОК", image: "market", audio: "rynok.mp3" }
     ];
 
     // Insert all words at once
@@ -88,7 +157,8 @@ export class DatabaseStorage implements IStorage {
 
   async getAllWords(): Promise<Word[]> {
     await this.ensureInitialized();
-    return await db.select().from(words);
+    const allWords = await db.select().from(words);
+    return this.filterBlacklistedWords(allWords);
   }
 
   async getWord(id: string): Promise<Word | undefined> {
@@ -173,7 +243,15 @@ export class DatabaseStorage implements IStorage {
       .from(words)
       .where(notInArray(words.id, correctWordIds));
 
-    return availableWords;
+    const filteredWords = this.filterBlacklistedWords(availableWords);
+    
+    // If no words available (user completed all), return all words to keep playing
+    if (filteredWords.length === 0) {
+      console.log('All words completed! Returning all words for continued practice.');
+      return await this.getAllWords();
+    }
+
+    return filteredWords;
   }
 
   async getRandomWords(excludeId: string, count: number): Promise<Word[]> {
@@ -184,9 +262,10 @@ export class DatabaseStorage implements IStorage {
       .from(words)
       .where(sql`${words.id} != ${excludeId}`)
       .orderBy(sql`RANDOM()`)
-      .limit(count);
+      .limit(count * 3); // Get more words to account for filtering
 
-    return allWords;
+    const filteredWords = this.filterBlacklistedWords(allWords);
+    return filteredWords.slice(0, count); // Return only the requested count
   }
 }
 

@@ -2,11 +2,12 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { type Word } from "@shared/schema";
 import { useAudio } from "@/hooks/useAudio";
-import { PICTURE_EMOJIS } from "@/lib/constants";
+import { WordHighlight } from "@/components/shared/WordHighlight";
+import { GamePictureDisplay } from "@/components/shared/GamePictureDisplay";
+import { DraggableLetter } from "@/components/shared/DraggableLetter";
 import {
   DndContext,
   DragOverlay,
-  useDraggable,
   useDroppable,
   DragEndEvent,
   DragStartEvent,
@@ -21,41 +22,6 @@ interface SpellWordGameProps {
   availableLetters: string[];
   onWordComplete: (isCorrect: boolean) => void;
   disabled?: boolean;
-}
-
-
-// Draggable Letter Component
-function DraggableLetter({ letter, index, disabled, used }: { letter: string, index: number, disabled: boolean, used: boolean }) {
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: `letter-${index}`,
-    data: { letter, index },
-    disabled: disabled || used,
-  });
-
-  return (
-    <motion.div
-      ref={setNodeRef}
-      {...listeners}
-      {...attributes}
-      className={`draggable-element w-20 h-20 rounded-xl text-3xl font-black transition-all shadow-lg cursor-pointer select-none ${
-        used
-          ? 'bg-gray-300 text-gray-600 border-2 border-gray-400 cursor-not-allowed'
-          : isDragging
-            ? 'bg-blue-400 text-white border-2 border-blue-300 opacity-50'
-            : 'bg-blue-500 text-white hover:bg-blue-600 border-2 border-blue-500 hover:border-blue-600'
-      }`}
-      whileHover={!used && !disabled ? { scale: 1.1 } : {}}
-      whileTap={!used && !disabled ? { scale: 0.9 } : {}}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        opacity: used ? 0.5 : 1,
-      }}
-    >
-      {letter}
-    </motion.div>
-  );
 }
 
 // Droppable Position Component
@@ -96,6 +62,7 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
   const [usedLetterIndices, setUsedLetterIndices] = useState<Set<number>>(new Set());
   const [showResult, setShowResult] = useState<'correct' | 'incorrect' | null>(null);
   const [incorrectLetterIndex, setIncorrectLetterIndex] = useState<number | null>(null);
+  const [showingResult, setShowingResult] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const { playLetterSound, playTryAgain } = useAudio();
 
@@ -117,22 +84,23 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
-    const data = event.active.data.current;
-    if (data?.letter) {
-      playLetterSound(data.letter);
-    }
+    // No sound on drag - only on click
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveId(null);
 
-    if (!over || !active.data.current) return;
+    if (!over || !active.data.current) {
+      return;
+    }
 
     const draggedData = active.data.current;
     const dropData = over.data.current;
     
-    if (!draggedData.letter || dropData?.index === undefined) return;
+    if (!draggedData.letter || dropData?.index === undefined) {
+      return;
+    }
 
     const { letter, index: sourceIndex } = draggedData;
     const dropIndex = dropData.index;
@@ -166,10 +134,8 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
     // Check if word is complete
     const filledPositions = newSelectedLetters.filter(l => l).length;
     if (filledPositions === word.word.length) {
-      // Show result immediately
+      // Celebrate immediately
       setShowResult('correct');
-      
-      // Wait a moment to show result, then proceed
       setTimeout(() => {
         setShowResult(null);
         onWordComplete(true);
@@ -204,61 +170,13 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
     setUsedLetterIndices(newUsedIndices);
   };
 
-  const handleBackspace = () => {
-    if (disabled || showResult || selectedLetters.length === 0) return;
-    
-    // Remove the last letter
-    const lastIndex = selectedLetters.length - 1;
-    const lastLetter = selectedLetters[lastIndex];
-    
-    // Find the original index of this letter in availableLetters
-    const originalIndex = availableLetters.findIndex((letter, idx) => 
-      letter === lastLetter && usedLetterIndices.has(idx)
-    );
-    
-    const newSelectedLetters = selectedLetters.slice(0, -1);
-    const newUsedIndices = new Set(Array.from(usedLetterIndices));
-    newUsedIndices.delete(originalIndex);
-    
-    setSelectedLetters(newSelectedLetters);
-    setUsedLetterIndices(newUsedIndices);
-  };
-
-  const getPictureEmoji = (word: Word) => {
-    return PICTURE_EMOJIS[word.image] || '❓';
-  };
-
-  const handleSpeakerClick = () => {
-    if (disabled || showResult) return;
-    
-    // Use Web Speech API to pronounce the word
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(word.word);
-      utterance.lang = 'ru-RU';
-      utterance.rate = 0.8;
-      speechSynthesis.speak(utterance);
-    }
-  };
-
   const activeItem = getActiveItem();
 
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="space-y-8">
         {/* Picture Display */}
-        <div className="text-center">
-          <div className="text-8xl mb-4">
-            {getPictureEmoji(word)}
-          </div>
-          <motion.div 
-            className="text-4xl mb-2 cursor-pointer hover:scale-110 transition-transform"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleSpeakerClick}
-          >
-            🔊
-          </motion.div>
-        </div>
+        <GamePictureDisplay word={word} disabled={disabled || !!showResult} />
 
         {/* Selected Letters Display */}
         <div className="flex justify-center gap-3 min-h-[100px] items-center">
@@ -271,19 +189,6 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
               onRemove={() => handleLetterRemove(index)}
             />
           ))}
-          
-          {/* Backspace Button */}
-          {selectedLetters.length > 0 && !showResult && (
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={handleBackspace}
-              className="w-20 h-20 bg-orange-500 text-white rounded-xl text-3xl font-bold hover:bg-orange-600 transition-colors shadow-lg border-2 border-orange-500 hover:border-orange-600 ml-2"
-              disabled={disabled}
-            >
-              ⌫
-            </motion.button>
-          )}
         </div>
 
         {/* Available Letters */}
@@ -295,9 +200,13 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
               index={index}
               disabled={disabled || !!showResult}
               used={usedLetterIndices.has(index)}
+              theme="blue"
+              size="lg"
+              onClick={(letter) => playLetterSound(letter)}
             />
           ))}
         </div>
+
 
         {/* Result Display */}
         {showResult && (

@@ -36,11 +36,15 @@ export function MixGame({ word, onAnswer, disabled, onMixTypeChange }: MixGamePr
     return gameTypes[Math.floor(Math.random() * gameTypes.length)];
   });
 
-  // Reset game type when word changes
+  // Track selected picture for highlighting
+  const [selectedPicture, setSelectedPicture] = useState<Word | null>(null);
+
+  // Reset game type and selected picture when word changes
   useEffect(() => {
     const gameTypes: Array<Exclude<GameType, 'mix'>> = ['picture-match', 'missing-letter', 'extra-letter', 'spell-word'];
     const newType = gameTypes[Math.floor(Math.random() * gameTypes.length)];
     setCurrentMixType(newType);
+    setSelectedPicture(null); // Reset selected picture
     onMixTypeChange?.(newType);
   }, [word.id, onMixTypeChange]);
 
@@ -85,7 +89,13 @@ export function MixGame({ word, onAnswer, disabled, onMixTypeChange }: MixGamePr
   });
 
   const handlePictureSelect = (selectedWord: Word, isCorrect: boolean) => {
-    onAnswer(isCorrect);
+    console.log('Picture selected:', selectedWord.word, 'isCorrect:', isCorrect);
+    setSelectedPicture(selectedWord);
+    
+    // Show highlight for a moment, then proceed
+    setTimeout(() => {
+      onAnswer(isCorrect);
+    }, isCorrect ? 1000 : 800); // Shorter delay for incorrect answers
   };
 
   const handleLetterSelect = (letter: string, isCorrect: boolean) => {
@@ -131,6 +141,7 @@ export function MixGame({ word, onAnswer, disabled, onMixTypeChange }: MixGamePr
               distractors={distractors}
               onPictureSelect={handlePictureSelect}
               disabled={disabled}
+              selectedPicture={selectedPicture}
             />
           )}
 

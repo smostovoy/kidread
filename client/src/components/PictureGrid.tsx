@@ -31,14 +31,18 @@ export function PictureGrid({
   }, [correctWord.id, distractors.length]);
 
   const handlePictureClick = useCallback((word: Word) => {
-    if (disabled) return;
+    console.log('handlePictureClick called for:', word.word, 'disabled:', disabled, 'selectedPicture:', selectedPicture);
+    console.log('onPictureSelect function:', onPictureSelect);
+    if (disabled || selectedPicture) return; // Prevent multiple clicks
     
     const isCorrect = word.id === correctWord.id;
+    console.log('Calling onPictureSelect with:', word.word, 'isCorrect:', isCorrect);
     if (!isCorrect) {
       playTryAgain();
     }
     onPictureSelect(word, isCorrect);
-  }, [disabled, correctWord.id, playTryAgain, onPictureSelect]);
+    console.log('onPictureSelect called, should see MixGame log next');
+  }, [disabled, selectedPicture, correctWord.id, playTryAgain, onPictureSelect]);
 
   // Memoize grid classes to prevent recalculation
   const gridClasses = useMemo(() => {
@@ -60,37 +64,19 @@ export function PictureGrid({
       {shuffledOptions.map((word, index) => {
         const isCorrect = word.id === correctWord.id;
         const isSelected = selectedPicture?.id === word.id;
-        const showFeedback = isSelected && selectedPicture;
+        
+        console.log('Rendering word:', word.word, 'isSelected:', isSelected, 'selectedPicture:', selectedPicture?.word);
         
         return (
-          <motion.div
+          <div
             key={word.id}
             onClick={() => handlePictureClick(word)}
+            style={{ cursor: 'pointer' }}
             className={`
-              picture-option card-modern aspect-square p-4 sm:p-6 cursor-pointer 
-              transition-all duration-300 gpu-accelerated select-none
-              ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'}
-              ${showFeedback ? (isCorrect ? 'correct' : 'incorrect') : ''}
-              ${isSelected ? 'ring-4 ring-offset-2' : ''}
+              w-40 h-40 cursor-pointer border-4 rounded-2xl flex items-center justify-center
+              ${disabled ? 'opacity-50' : ''}
+              ${isSelected ? (isCorrect ? 'bg-green-400 border-green-600' : 'bg-red-400 border-red-600') : 'bg-white border-gray-300'}
             `}
-            variants={ANIMATION_VARIANTS.fadeIn}
-            custom={index}
-            initial="initial"
-            animate="animate"
-            whileHover={disabled ? {} : { 
-              scale: 1.05, 
-              y: -4,
-              transition: { duration: 0.2 }
-            }}
-            whileTap={disabled ? {} : { 
-              scale: 0.98,
-              transition: { duration: 0.1 }
-            }}
-            transition={{ 
-              delay: index * 0.1,
-              duration: 0.3,
-              ease: [0.19, 1, 0.22, 1]
-            }}
           >
             <div className="w-full h-full flex items-center justify-center rounded-xl bg-gradient-to-br from-background to-muted/30 relative overflow-hidden">
               {/* Background glow effect */}
@@ -113,7 +99,7 @@ export function PictureGrid({
               </motion.span>
               
               {/* Success/Error overlay */}
-              {showFeedback && (
+              {isSelected && (
                 <motion.div
                   className={`
                     absolute inset-0 flex items-center justify-center text-4xl font-bold
@@ -128,7 +114,7 @@ export function PictureGrid({
               )}
             </div>
             
-          </motion.div>
+          </div>
         );
       })}
     </motion.div>

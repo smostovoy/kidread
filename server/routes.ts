@@ -4,6 +4,9 @@ import { storage } from "./storage";
 import { insertGameProgressSchema, insertUserAnswerSchema } from "@shared/schema";
 import { z } from "zod";
 
+// Blacklist for difficult letters - exclude from letter generation
+const BLACKLISTED_LETTERS = ['Ъ'];
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get available words (excluding correctly answered ones in last month)
   app.get("/api/words", async (req, res) => {
@@ -56,13 +59,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const wordText = word.word;
       const russianLetters = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ';
       
+      // Filter out blacklisted letters
+      const availableLettersForGeneration = russianLetters.split('')
+        .filter(letter => !BLACKLISTED_LETTERS.includes(letter));
+      
       // Choose a random position to remove (not first or last position for easier gameplay)
       const missingLetterIndex = Math.floor(Math.random() * (wordText.length - 2)) + 1;
       const correctLetter = wordText[missingLetterIndex];
       
       // Generate 3 random incorrect letters that are not in the word
       const wordLetters = new Set(wordText.split(''));
-      const availableLetters = russianLetters.split('').filter(letter => !wordLetters.has(letter));
+      const availableLetters = availableLettersForGeneration.filter(letter => !wordLetters.has(letter));
       const incorrectLetters = availableLetters
         .sort(() => Math.random() - 0.5)
         .slice(0, 3);
@@ -93,12 +100,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const wordText = word.word;
       const russianLetters = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ';
       
+      // Filter out blacklisted letters
+      const availableLettersForGeneration = russianLetters.split('')
+        .filter(letter => !BLACKLISTED_LETTERS.includes(letter));
+      
       // Choose a random position to insert extra letter (not at the very beginning or end)
       const insertPosition = Math.floor(Math.random() * (wordText.length - 1)) + 1;
       
       // Generate a random letter that's not in the word
       const wordLetters = new Set(wordText.split(''));
-      const availableLetters = russianLetters.split('').filter(letter => !wordLetters.has(letter));
+      const availableLetters = availableLettersForGeneration.filter(letter => !wordLetters.has(letter));
       const extraLetter = availableLetters[Math.floor(Math.random() * availableLetters.length)];
       
       // Insert the extra letter
