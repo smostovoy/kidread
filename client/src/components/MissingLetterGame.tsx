@@ -149,7 +149,7 @@ export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onL
               transition={{ delay: index * 0.1 }}
             >
               {index === missingLetterIndex ? (
-                <MissingLetterSlot isDropZone={!disabled && !showingResult} filledLetter={filledLetter} />
+                <MissingLetterSlot isDropZone={!disabled && !showingResult} filledLetter={filledLetter || undefined} />
               ) : (
                 <div className="w-16 h-16 flex items-center justify-center text-3xl font-bold rounded-lg border-2 border-gray-300 bg-white text-gray-800">
                   {letter}

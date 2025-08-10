@@ -1,6 +1,6 @@
 import { type Word, type InsertWord, type GameProgress, type InsertGameProgress, type UserAnswer, type InsertUserAnswer, words, userAnswers } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, gt, sql, notInArray, notIn } from "drizzle-orm";
+import { eq, and, gt, sql, notInArray } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 // Import blacklist from constants
@@ -37,7 +37,7 @@ export class DatabaseStorage implements IStorage {
 
   // Helper function to check if a word is blacklisted
   private isWordBlacklisted(word: string): boolean {
-    return LEARNING_BLACKLIST.words.includes(word.toUpperCase());
+    return LEARNING_BLACKLIST.words.includes(word.toUpperCase() as any);
   }
 
   // Helper function to check if a word contains blacklisted letters
