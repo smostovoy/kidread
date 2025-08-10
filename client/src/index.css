@@ -262,13 +262,29 @@
 
   /* Touch support for drag and drop */
   .draggable-element {
-    touch-action: none;
+    touch-action: none !important;
     -webkit-user-drag: none;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-text-size-adjust: none;
+  }
+
+  /* Prevent iOS Safari from interfering with drag */
+  body {
+    -webkit-text-size-adjust: 100%;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+
+  /* DndKit specific overrides */
+  [data-dnd-context] {
+    touch-action: none !important;
   }
   
   /* Particle effects */

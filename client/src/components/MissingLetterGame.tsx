@@ -91,14 +91,14 @@ export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onL
   // Configure sensors for better touch support
   const mouseSensor = useSensor(MouseSensor, {
     activationConstraint: {
-      distance: 8,
+      distance: 3,
     },
   });
 
   const touchSensor = useSensor(TouchSensor, {
     activationConstraint: {
-      delay: 200,
-      tolerance: 8,
+      delay: 50,
+      tolerance: 3,
     },
   });
 

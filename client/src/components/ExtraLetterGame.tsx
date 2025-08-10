@@ -87,14 +87,14 @@ export function ExtraLetterGame({ word, wordWithExtraLetter, extraLetterIndex, o
   // Configure sensors for better touch support
   const mouseSensor = useSensor(MouseSensor, {
     activationConstraint: {
-      distance: 8,
+      distance: 3,
     },
   });
 
   const touchSensor = useSensor(TouchSensor, {
     activationConstraint: {
-      delay: 200,
-      tolerance: 8,
+      delay: 50,
+      tolerance: 3,
     },
   });
 
