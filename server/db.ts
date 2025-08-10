@@ -1,3 +1,5 @@
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
 
 if (!process.env.DATABASE_URL) {
@@ -6,29 +8,13 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Check if we're using a local database or Neon
-const isLocalDB = process.env.DATABASE_URL.includes('localhost') || 
-                  process.env.DATABASE_URL.includes('127.0.0.1');
+// Parse connection string to determine if it's Supabase
+const isSupabase = process.env.DATABASE_URL.includes('supabase.com');
 
-let db: any;
-let pool: any;
+// Use standard pg driver for Supabase (which is PostgreSQL compatible)
+export const pool = new Pool({ 
+  connectionString: process.env.DATABASE_URL,
+  ssl: isSupabase ? { rejectUnauthorized: false } : false
+});
 
-if (isLocalDB) {
-  // Use standard pg driver for local PostgreSQL
-  const { Pool: PgPool } = await import('pg');
-  const { drizzle: drizzlePg } = await import('drizzle-orm/node-postgres');
-  
-  pool = new PgPool({ connectionString: process.env.DATABASE_URL });
-  db = drizzlePg(pool, { schema });
-} else {
-  // Use Neon serverless driver for production
-  const { Pool: NeonPool, neonConfig } = await import('@neondatabase/serverless');
-  const { drizzle: drizzleNeon } = await import('drizzle-orm/neon-serverless');
-  const ws = await import('ws');
-  
-  neonConfig.webSocketConstructor = ws.default;
-  pool = new NeonPool({ connectionString: process.env.DATABASE_URL });
-  db = drizzleNeon({ client: pool, schema });
-}
-
-export { pool, db };
+export const db = drizzle(pool, { schema });

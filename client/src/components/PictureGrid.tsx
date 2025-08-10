@@ -128,12 +128,6 @@ export function PictureGrid({
               )}
             </div>
             
-            {/* Word label (optional, for debugging) */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className="mt-2 text-xs text-center text-muted-foreground truncate">
-                {word.word}
-              </div>
-            )}
           </motion.div>
         );
       })}

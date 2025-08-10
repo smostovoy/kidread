@@ -2,7 +2,14 @@
   "permissions": {
     "allow": [
       "Bash(npm install)",
-      "Bash(createdb:*)"
+      "Bash(createdb:*)",
+      "Bash(open:*)",
+      "Bash(mv:*)",
+      "Bash(rm:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm run check:*)",
+      "Bash(PORT=3456 npm run dev)",
+      "Bash(lsof:*)"
     ],
     "deny": []
   }

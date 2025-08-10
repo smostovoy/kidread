@@ -254,6 +254,11 @@
     animation: gradient-shift 3s ease infinite;
     backdrop-filter: blur(10px);
   }
+
+  /* Celebration particles only - no background overlay */
+  .celebration-particles-only {
+    @apply fixed inset-0 z-50 pointer-events-none;
+  }
   
   /* Particle effects */
   .particle {

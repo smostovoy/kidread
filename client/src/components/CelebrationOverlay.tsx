@@ -124,7 +124,7 @@ export function CelebrationOverlay({ isVisible, onNext }: CelebrationOverlayProp
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          className="celebration-overlay gpu-accelerated"
+          className="celebration-particles-only gpu-accelerated"
           {...ANIMATION_VARIANTS.fadeIn}
         >
           {/* Confetti */}
@@ -144,72 +144,6 @@ export function CelebrationOverlay({ isVisible, onNext }: CelebrationOverlayProp
             />
           ))}
 
-          {/* Central celebration content */}
-          <div className="relative z-10 text-center">
-            <motion.div
-              className="mb-8"
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ 
-                type: "spring",
-                stiffness: 260,
-                damping: 20,
-                delay: 0.2
-              }}
-            >
-              <div className="text-8xl mb-4 animate-bounce-in">🎉</div>
-              <motion.h2 
-                className="text-6xl font-bold text-white mb-4"
-                initial={{ scale: 0 }}
-                animate={{ scale: [0, 1.2, 1] }}
-                transition={{ 
-                  duration: 0.6,
-                  delay: 0.3,
-                  times: [0, 0.6, 1]
-                }}
-              >
-                {celebrationMessage}
-              </motion.h2>
-            </motion.div>
-
-            {/* Success animation ring */}
-            <motion.div
-              className="absolute inset-0 border-8 border-white rounded-full opacity-20"
-              initial={{ scale: 0 }}
-              animate={{ scale: [0, 1, 1.2] }}
-              transition={{ 
-                duration: 1.5,
-                ease: "easeOut",
-                delay: 0.1
-              }}
-            />
-
-            {/* Pulsing background effect */}
-            <motion.div
-              className="absolute inset-0 bg-gradient-radial from-white/20 to-transparent rounded-full"
-              animate={{ 
-                scale: [1, 1.5, 1],
-                opacity: [0.3, 0.1, 0.3]
-              }}
-              transition={{ 
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            />
-          </div>
-
-          {/* Progress indicator */}
-          <motion.div 
-            className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1 }}
-          >
-            <div className="bg-white/20 rounded-full px-6 py-2 backdrop-blur-sm">
-              <p className="text-white text-sm font-medium">Переходим к следующему слову...</p>
-            </div>
-          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>

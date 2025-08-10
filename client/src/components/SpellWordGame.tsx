@@ -1,7 +1,16 @@
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { type Word } from "@shared/schema";
 import { useAudio } from "@/hooks/useAudio";
+import { PICTURE_EMOJIS } from "@/lib/constants";
+import {
+  DndContext,
+  DragOverlay,
+  useDraggable,
+  useDroppable,
+  DragEndEvent,
+  DragStartEvent,
+} from '@dnd-kit/core';
 
 interface SpellWordGameProps {
   word: Word;
@@ -10,84 +19,103 @@ interface SpellWordGameProps {
   disabled?: boolean;
 }
 
-const PICTURE_EMOJIS: Record<string, string> = {
-  'elephant': '🐘',
-  'cat': '🐱',
-  'house': '🏠',
-  'ball': '⚽',
-  'fox': '🦊',
-  'table': '📋',
-  'fish': '🐟',
-  'dog': '🐕',
-  'flower': '🌸',
-  'car': '🚗',
-  'tree': '🌳',
-  'sun': '☀️',
-  'moon': '🌙',
-  'star': '⭐',
-  'cloud': '☁️',
-  'bird': '🐦',
-  'bread': '🍞',
-  'milk': '🥛',
-  'apple': '🍎',
-  'book': '📖',
-  'pencil': '✏️',
-  'chair': '🪑',
-  'window': '🪟',
-  'door': '🚪',
-  'lamp': '💡',
-  'clock': '🕐',
-  'phone': '📱',
-  'tv': '📺',
-  'computer': '💻',
-  'airplane': '✈️',
-  'train': '🚂',
-  'bus': '🚌',
-  'bicycle': '🚲',
-  'ship': '🚢',
-  'bear': '🐻',
-  'rabbit': '🐰',
-  'wolf': '🐺',
-  'mouse': '🐭',
-  'frog': '🐸',
-  'butterfly': '🦋',
-};
+
+// Draggable Letter Component
+function DraggableLetter({ letter, index, disabled, used }: { letter: string, index: number, disabled: boolean, used: boolean }) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `letter-${index}`,
+    data: { letter, index },
+    disabled: disabled || used,
+  });
+
+  return (
+    <motion.div
+      ref={setNodeRef}
+      {...listeners}
+      {...attributes}
+      className={`w-20 h-20 rounded-xl text-3xl font-black transition-all shadow-lg cursor-pointer select-none ${
+        used
+          ? 'bg-gray-300 text-gray-600 border-2 border-gray-400 cursor-not-allowed'
+          : isDragging
+            ? 'bg-blue-400 text-white border-2 border-blue-300 opacity-50'
+            : 'bg-blue-500 text-white hover:bg-blue-600 border-2 border-blue-500 hover:border-blue-600'
+      }`}
+      whileHover={!used && !disabled ? { scale: 1.1 } : {}}
+      whileTap={!used && !disabled ? { scale: 0.9 } : {}}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        opacity: used ? 0.5 : 1,
+      }}
+    >
+      {letter}
+    </motion.div>
+  );
+}
+
+// Droppable Position Component
+function DroppablePosition({ index, letter, isIncorrect, onRemove }: { index: number, letter?: string, isIncorrect: boolean, onRemove: () => void }) {
+  const { isOver, setNodeRef } = useDroppable({
+    id: `position-${index}`,
+    data: { index },
+  });
+
+  return (
+    <motion.div
+      ref={setNodeRef}
+      className={`w-20 h-20 border-4 rounded-xl flex items-center justify-center text-4xl font-black text-black shadow-lg transition-all duration-300 ${
+        isIncorrect
+          ? 'border-red-500 bg-red-100 animate-pulse'
+          : letter 
+            ? 'border-blue-500 bg-gray-100 cursor-pointer hover:bg-blue-100' 
+            : isOver
+              ? 'border-green-500 bg-green-50'
+              : 'border-dashed border-gray-400 bg-gray-50'
+      }`}
+      whileHover={{ scale: letter ? 1.05 : 1.02 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={letter ? onRemove : undefined}
+      animate={isIncorrect ? { 
+        x: [-10, 10, -10, 10, 0],
+        scale: [1, 1.1, 1]
+      } : {}}
+      transition={{ duration: 0.6 }}
+    >
+      {letter || ''}
+    </motion.div>
+  );
+}
 
 export function SpellWordGame({ word, availableLetters, onWordComplete, disabled }: SpellWordGameProps) {
   const [selectedLetters, setSelectedLetters] = useState<string[]>([]);
   const [usedLetterIndices, setUsedLetterIndices] = useState<Set<number>>(new Set());
   const [showResult, setShowResult] = useState<'correct' | 'incorrect' | null>(null);
-  const [draggedLetter, setDraggedLetter] = useState<{letter: string, index: number} | null>(null);
   const [incorrectLetterIndex, setIncorrectLetterIndex] = useState<number | null>(null);
-  const [touchDragData, setTouchDragData] = useState<{letter: string, sourceIndex: number} | null>(null);
-  const [isIOS, setIsIOS] = useState(false);
-  const [dragPreview, setDragPreview] = useState<{x: number, y: number, letter: string, offsetX: number, offsetY: number, width: number, height: number} | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
   const { playLetterSound, playTryAgain } = useAudio();
 
-  // Detect iOS for special handling
-  useEffect(() => {
-    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !('MSStream' in window);
-    setIsIOS(isIOSDevice);
-  }, []);
-
-  const handleLetterClick = (letter: string) => {
-    if (disabled || showResult) return;
-    playLetterSound(letter);
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+    const data = event.active.data.current;
+    if (data?.letter) {
+      playLetterSound(data.letter);
+    }
   };
 
-  const handleDragStart = (letter: string, index: number) => {
-    if (disabled || showResult || usedLetterIndices.has(index)) return;
-    setDraggedLetter({ letter, index });
-  };
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
 
-  const handleDragEnd = () => {
-    setDraggedLetter(null);
-  };
+    if (!over || !active.data.current) return;
 
-  const handleDrop = (dropIndex: number) => {
-    if (!draggedLetter || disabled || showResult) return;
+    const draggedData = active.data.current;
+    const dropData = over.data.current;
     
-    const { letter, index } = draggedLetter;
+    if (!draggedData.letter || dropData?.index === undefined) return;
+
+    const { letter, index: sourceIndex } = draggedData;
+    const dropIndex = dropData.index;
     
     // Check if this letter is correct for this position
     const correctLetter = word.word[dropIndex];
@@ -101,7 +129,6 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
       // Remove the highlight after animation
       setTimeout(() => {
         setIncorrectLetterIndex(null);
-        setDraggedLetter(null);
       }, 800);
       
       return;
@@ -111,17 +138,14 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
     const newSelectedLetters = [...selectedLetters];
     newSelectedLetters[dropIndex] = letter;
     
-    const newUsedIndices = new Set(Array.from(usedLetterIndices).concat([index]));
+    const newUsedIndices = new Set(Array.from(usedLetterIndices).concat([sourceIndex]));
     
     setSelectedLetters(newSelectedLetters);
     setUsedLetterIndices(newUsedIndices);
-    setDraggedLetter(null);
 
     // Check if word is complete
     const filledPositions = newSelectedLetters.filter(l => l).length;
     if (filledPositions === word.word.length) {
-      const spelledWord = newSelectedLetters.join('');
-      
       // Show result immediately
       setShowResult('correct');
       
@@ -133,116 +157,13 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
     }
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-  };
-
-  // Touch handlers for mobile drag&drop (iOS compatible)
-  const handleTouchStart = (e: React.TouchEvent, letter: string, index: number) => {
-    if (disabled || showResult || usedLetterIndices.has(index)) return;
-    
-    const touch = e.touches[0];
-    const element = e.currentTarget as HTMLElement;
-    const rect = element.getBoundingClientRect();
-    
-    // Вычисляем offset от левого верхнего угла элемента до точки касания
-    const offsetX = touch.clientX - rect.left;
-    const offsetY = touch.clientY - rect.top;
-    
-    setTouchDragData({ letter, sourceIndex: index });
-    setDragPreview({ 
-      x: rect.left, 
-      y: rect.top, 
-      letter,
-      offsetX,
-      offsetY,
-      width: rect.width,
-      height: rect.height
-    });
-    
-    // iOS Safari requires stopPropagation
-    e.stopPropagation();
-    e.preventDefault();
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!touchDragData || !dragPreview) return;
-    
-    const touch = e.touches[0];
-    
-    setDragPreview({ 
-      ...dragPreview,
-      x: touch.clientX - dragPreview.offsetX, 
-      y: touch.clientY - dragPreview.offsetY
-    });
-    
-    // iOS Safari requires stopPropagation
-    e.stopPropagation();
-    e.preventDefault();
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent, dropIndex?: number) => {
-    if (!touchDragData) return;
-    
-    // iOS Safari compatible touch end handling
-    const touch = e.changedTouches?.[0] || e.touches?.[0];
-    
-    if (dropIndex !== undefined && touch) {
-      // This is a drop zone, handle the drop
-      const { letter, sourceIndex } = touchDragData;
-      
-      // Check if this letter is correct for this position
-      const correctLetter = word.word[dropIndex];
-      const isCorrect = letter === correctLetter;
-      
-      if (!isCorrect) {
-        // Show red highlight and play error sound
-        setIncorrectLetterIndex(dropIndex);
-        playTryAgain();
-        
-        // Remove the highlight after animation
-        setTimeout(() => {
-          setIncorrectLetterIndex(null);
-        }, 800);
-      } else {
-        // Letter is correct, add it
-        const newSelectedLetters = [...selectedLetters];
-        newSelectedLetters[dropIndex] = letter;
-        
-        const newUsedIndices = new Set(Array.from(usedLetterIndices).concat([sourceIndex]));
-        
-        setSelectedLetters(newSelectedLetters);
-        setUsedLetterIndices(newUsedIndices);
-
-        // Check if word is complete
-        const filledPositions = newSelectedLetters.filter(l => l).length;
-        if (filledPositions === word.word.length) {
-          const spelledWord = newSelectedLetters.join('');
-          setShowResult(spelledWord === word.word ? 'correct' : 'incorrect');
-          
-          setTimeout(() => {
-            onWordComplete(spelledWord === word.word);
-          }, 1500);
-        }
-      }
-    } else if (touch && !dropIndex) {
-      // Try to find drop zone under touch point for iOS
-      const elementUnderTouch = document.elementFromPoint(touch.clientX, touch.clientY);
-      const dropZone = elementUnderTouch?.closest('[data-drop-index]');
-      
-      if (dropZone) {
-        const dropIdx = parseInt(dropZone.getAttribute('data-drop-index') || '');
-        if (!isNaN(dropIdx)) {
-          // Recursively call with found drop index
-          return handleTouchEnd(e, dropIdx);
-        }
-      }
-    }
-    
-    setTouchDragData(null);
-    setDragPreview(null);
-    e.stopPropagation();
-    e.preventDefault();
+  const getActiveItem = () => {
+    if (!activeId) return null;
+    const index = parseInt(activeId.replace('letter-', ''));
+    return {
+      letter: availableLetters[index],
+      index
+    };
   };
 
   const handleLetterRemove = (removeIndex: number) => {
@@ -299,149 +220,105 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
     }
   };
 
-  return (
-    <div className="space-y-8">
-      {/* Picture Display */}
-      <div className="text-center">
-        <div className="text-8xl mb-4">
-          {getPictureEmoji(word)}
-        </div>
-        <motion.div 
-          className="text-4xl mb-2 cursor-pointer hover:scale-110 transition-transform"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={handleSpeakerClick}
-        >
-          🔊
-        </motion.div>
-      </div>
+  const activeItem = getActiveItem();
 
-      {/* Selected Letters Display */}
-      <div className="flex justify-center gap-3 min-h-[100px] items-center">
-        {Array.from({ length: word.word.length }).map((_, index) => (
-          <motion.div
-            key={index}
-            className={`w-20 h-20 border-4 rounded-xl flex items-center justify-center text-4xl font-black text-black shadow-lg transition-all duration-300 drop-zone no-select ${
-              incorrectLetterIndex === index
-                ? 'border-red-500 bg-red-100 animate-pulse'
-                : selectedLetters[index] 
-                  ? 'border-blue-500 bg-gray-100 cursor-pointer hover:bg-blue-100' 
-                  : 'border-dashed border-gray-400 bg-gray-50'
-            }`}
-            whileHover={{ scale: selectedLetters[index] ? 1.05 : 1.02 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => selectedLetters[index] && handleLetterRemove(index)}
-            onDrop={() => handleDrop(index)}
-            onDragOver={handleDragOver}
-            onTouchEnd={(e) => handleTouchEnd(e, index)}
-            data-drop-index={index}
-            animate={incorrectLetterIndex === index ? { 
-              x: [-10, 10, -10, 10, 0],
-              scale: [1, 1.1, 1]
-            } : {}}
-            transition={{ duration: 0.6 }}
-          >
-            {selectedLetters[index] || ''}
-          </motion.div>
-        ))}
-        
-        {/* Backspace Button */}
-        {selectedLetters.length > 0 && !showResult && (
-          <motion.button
+  return (
+    <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <div className="space-y-8">
+        {/* Picture Display */}
+        <div className="text-center">
+          <div className="text-8xl mb-4">
+            {getPictureEmoji(word)}
+          </div>
+          <motion.div 
+            className="text-4xl mb-2 cursor-pointer hover:scale-110 transition-transform"
             whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={handleBackspace}
-            className="w-20 h-20 bg-orange-500 text-white rounded-xl text-3xl font-bold hover:bg-orange-600 transition-colors shadow-lg border-2 border-orange-500 hover:border-orange-600 ml-2"
-            disabled={disabled}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleSpeakerClick}
           >
-            ⌫
-          </motion.button>
+            🔊
+          </motion.div>
+        </div>
+
+        {/* Selected Letters Display */}
+        <div className="flex justify-center gap-3 min-h-[100px] items-center">
+          {Array.from({ length: word.word.length }).map((_, index) => (
+            <DroppablePosition
+              key={index}
+              index={index}
+              letter={selectedLetters[index]}
+              isIncorrect={incorrectLetterIndex === index}
+              onRemove={() => handleLetterRemove(index)}
+            />
+          ))}
+          
+          {/* Backspace Button */}
+          {selectedLetters.length > 0 && !showResult && (
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={handleBackspace}
+              className="w-20 h-20 bg-orange-500 text-white rounded-xl text-3xl font-bold hover:bg-orange-600 transition-colors shadow-lg border-2 border-orange-500 hover:border-orange-600 ml-2"
+              disabled={disabled}
+            >
+              ⌫
+            </motion.button>
+          )}
+        </div>
+
+        {/* Available Letters */}
+        <div className="flex flex-wrap justify-center gap-4 max-w-2xl mx-auto">
+          {availableLetters.map((letter, index) => (
+            <DraggableLetter
+              key={index}
+              letter={letter}
+              index={index}
+              disabled={disabled || !!showResult}
+              used={usedLetterIndices.has(index)}
+            />
+          ))}
+        </div>
+
+        {/* Result Display */}
+        {showResult && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center mb-4"
+          >
+            {showResult === 'correct' ? (
+              <div className="text-6xl text-green-500">
+                <div className="text-8xl mb-2">🎉</div>
+              </div>
+            ) : (
+              <div className="text-6xl text-red-500">
+                <div className="text-8xl mb-2">❌</div>
+                <p className="text-3xl font-bold text-gray-800 mt-2">{word.word}</p>
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {/* Progress indicator */}
+        {!showResult && (
+          <div className="text-center text-child-text">
+            <div className="flex justify-center gap-2">
+              {Array.from({ length: word.word.length }).map((_, i) => (
+                <div key={i} className={`w-4 h-4 rounded-full ${i < selectedLetters.length ? 'bg-blue-500' : 'bg-gray-300'}`} />
+              ))}
+            </div>
+          </div>
         )}
       </div>
 
-
-
-      {/* Available Letters */}
-      <div className="flex flex-wrap justify-center gap-4 max-w-2xl mx-auto">
-        {availableLetters.map((letter, index) => (
-          <motion.div
-            key={index}
-            className={`w-20 h-20 rounded-xl text-3xl font-black transition-all shadow-lg cursor-pointer select-none draggable no-select ${
-              usedLetterIndices.has(index)
-                ? 'bg-gray-300 text-gray-600 border-2 border-gray-400 cursor-not-allowed'
-                : 'bg-blue-500 text-white hover:bg-blue-600 border-2 border-blue-500 hover:border-blue-600'
-            }`}
-            whileHover={!usedLetterIndices.has(index) && !disabled ? { scale: 1.1 } : {}}
-            whileTap={!usedLetterIndices.has(index) && !disabled ? { scale: 0.9 } : {}}
-            onClick={() => !usedLetterIndices.has(index) && handleLetterClick(letter)}
-            draggable={!usedLetterIndices.has(index) && !disabled}
-            onDragStart={() => handleDragStart(letter, index)}
-            onDragEnd={handleDragEnd}
-            onTouchStart={(e) => handleTouchStart(e, letter, index)}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={(e) => handleTouchEnd(e)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              opacity: usedLetterIndices.has(index) ? 0.5 : 1,
-            }}
-          >
-            {letter}
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Result Display */}
-      {showResult && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center mb-4"
-        >
-          {showResult === 'correct' ? (
-            <div className="text-6xl text-green-500">
-              <div className="text-8xl mb-2">🎉</div>
-
-            </div>
-          ) : (
-            <div className="text-6xl text-red-500">
-              <div className="text-8xl mb-2">❌</div>
-              <p className="text-3xl font-bold text-gray-800 mt-2">{word.word}</p>
-            </div>
-          )}
-        </motion.div>
-      )}
-
-      {/* Progress indicator */}
-      {!showResult && (
-        <div className="text-center text-child-text">
-          <div className="flex justify-center gap-2">
-            {Array.from({ length: word.word.length }).map((_, i) => (
-              <div key={i} className={`w-4 h-4 rounded-full ${i < selectedLetters.length ? 'bg-blue-500' : 'bg-gray-300'}`} />
-            ))}
+      {/* Drag Overlay */}
+      <DragOverlay>
+        {activeItem ? (
+          <div className="w-20 h-20 rounded-xl text-3xl font-black bg-blue-400 text-white border-2 border-blue-300 flex items-center justify-center shadow-2xl">
+            {activeItem.letter}
           </div>
-        </div>
-      )}
-
-      {/* Touch Drag Preview */}
-      {dragPreview && (
-        <motion.div
-          className="fixed pointer-events-none z-50 bg-blue-500 text-white rounded-xl flex items-center justify-center font-bold shadow-2xl border-2 border-blue-300 opacity-90"
-          style={{
-            left: dragPreview.x,
-            top: dragPreview.y,
-            width: dragPreview.width,
-            height: dragPreview.height,
-            fontSize: `${Math.min(dragPreview.width, dragPreview.height) * 0.4}px`,
-          }}
-          initial={{ scale: 1 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 0 }}
-        >
-          {dragPreview.letter}
-        </motion.div>
-      )}
-    </div>
+        ) : null}
+      </DragOverlay>
+    </DndContext>
   );
 }
