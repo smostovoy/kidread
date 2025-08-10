@@ -2,18 +2,16 @@ import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
 
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
-  );
-}
+// Hardcoded database URL for Supabase
+const DATABASE_URL = process.env.DATABASE_URL || 
+  "postgresql://postgres.penajxugmtgjryffuhqi:GQB5ziQktCb3kumN@aws-0-eu-north-1.pooler.supabase.com:5432/postgres";
 
 // Parse connection string to determine if it's Supabase
-const isSupabase = process.env.DATABASE_URL.includes('supabase.com');
+const isSupabase = DATABASE_URL.includes('supabase.com');
 
 // Use standard pg driver for Supabase (which is PostgreSQL compatible)
 export const pool = new Pool({ 
-  connectionString: process.env.DATABASE_URL,
+  connectionString: DATABASE_URL,
   ssl: isSupabase ? { rejectUnauthorized: false } : false
 });
 

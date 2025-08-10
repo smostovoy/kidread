@@ -15,6 +15,32 @@
 - **Command**: `DATABASE_URL="..." PORT=3456 npm run dev`
 - **Database**: Requires Supabase connection string in DATABASE_URL
 
+### Production Build & Heroku Deployment
+
+#### Deployment Process
+1. **Full deployment with checks**: `npm run deploy`
+   - Runs TypeScript type checking
+   - Tests local build
+   - Commits any changes
+   - Pushes to GitHub (origin/main)
+   - Deploys to Heroku
+   
+2. **Quick deployment**: `npm run deploy:quick`
+   - Commits all changes with "Quick deploy" message
+   - Pushes directly to Heroku
+
+#### Build Configuration
+- **Build**: `npm run build` - builds client and server locally (for testing)
+- **Start**: `npm run start` - runs production server
+- **Database**: Hardcoded Supabase URL with fallback to DATABASE_URL env var
+
+#### Heroku Requirements
+- **Procfile**: `web: npm run start`
+- **Node.js engine**: >=20.0.0
+- **Dynamic vite imports**: Production compatibility (vite only loaded in dev)
+- **SSL configuration**: Automatic for Supabase connections
+- **Auto-build**: Heroku automatically runs `npm run build` during deployment
+
 ### UI Design Principles
 - **Target Audience**: Children learning to read
 - **Text Usage**: Avoid text where possible - children cannot read yet
