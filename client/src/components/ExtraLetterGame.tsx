@@ -10,6 +10,10 @@ import {
   useDroppable,
   DragEndEvent,
   DragStartEvent,
+  TouchSensor,
+  MouseSensor,
+  useSensor,
+  useSensors,
 } from '@dnd-kit/core';
 
 interface ExtraLetterGameProps {
@@ -37,7 +41,7 @@ function DraggableExtraLetter({ letter, index, disabled }: { letter: string, ind
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ delay: index * 0.1 }}
-      className={`w-16 h-16 flex items-center justify-center text-3xl font-bold rounded-lg border-2 transition-all duration-200 cursor-pointer select-none ${
+      className={`draggable-element w-16 h-16 flex items-center justify-center text-3xl font-bold rounded-lg border-2 transition-all duration-200 cursor-pointer select-none ${
         disabled 
           ? 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed' 
           : isDragging
@@ -79,6 +83,22 @@ function TrashZone() {
 export function ExtraLetterGame({ word, wordWithExtraLetter, extraLetterIndex, onLetterRemove, disabled }: ExtraLetterGameProps) {
   const { playLetterSound } = useAudio();
   const [activeId, setActiveId] = useState<string | null>(null);
+
+  // Configure sensors for better touch support
+  const mouseSensor = useSensor(MouseSensor, {
+    activationConstraint: {
+      distance: 8,
+    },
+  });
+
+  const touchSensor = useSensor(TouchSensor, {
+    activationConstraint: {
+      delay: 200,
+      tolerance: 8,
+    },
+  });
+
+  const sensors = useSensors(mouseSensor, touchSensor);
   
   const wordArray = wordWithExtraLetter.split('');
   const emoji = PICTURE_EMOJIS[word.image] || '❓';
@@ -131,7 +151,7 @@ export function ExtraLetterGame({ word, wordWithExtraLetter, extraLetterIndex, o
   const activeItem = getActiveItem();
 
   return (
-    <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="flex flex-col items-center space-y-8">
         {/* Picture and Speaker */}
         <div className="text-center">

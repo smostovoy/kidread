@@ -259,6 +259,17 @@
   .celebration-particles-only {
     @apply fixed inset-0 z-50 pointer-events-none;
   }
+
+  /* Touch support for drag and drop */
+  .draggable-element {
+    touch-action: none;
+    -webkit-user-drag: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
   
   /* Particle effects */
   .particle {

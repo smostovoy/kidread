@@ -10,6 +10,10 @@ import {
   useDroppable,
   DragEndEvent,
   DragStartEvent,
+  TouchSensor,
+  MouseSensor,
+  useSensor,
+  useSensors,
 } from '@dnd-kit/core';
 
 interface SpellWordGameProps {
@@ -33,7 +37,7 @@ function DraggableLetter({ letter, index, disabled, used }: { letter: string, in
       ref={setNodeRef}
       {...listeners}
       {...attributes}
-      className={`w-20 h-20 rounded-xl text-3xl font-black transition-all shadow-lg cursor-pointer select-none ${
+      className={`draggable-element w-20 h-20 rounded-xl text-3xl font-black transition-all shadow-lg cursor-pointer select-none ${
         used
           ? 'bg-gray-300 text-gray-600 border-2 border-gray-400 cursor-not-allowed'
           : isDragging
@@ -94,6 +98,22 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
   const [incorrectLetterIndex, setIncorrectLetterIndex] = useState<number | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const { playLetterSound, playTryAgain } = useAudio();
+
+  // Configure sensors for better touch support
+  const mouseSensor = useSensor(MouseSensor, {
+    activationConstraint: {
+      distance: 8,
+    },
+  });
+
+  const touchSensor = useSensor(TouchSensor, {
+    activationConstraint: {
+      delay: 200,
+      tolerance: 8,
+    },
+  });
+
+  const sensors = useSensors(mouseSensor, touchSensor);
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
@@ -223,7 +243,7 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
   const activeItem = getActiveItem();
 
   return (
-    <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="space-y-8">
         {/* Picture Display */}
         <div className="text-center">

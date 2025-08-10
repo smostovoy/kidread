@@ -10,6 +10,10 @@ import {
   useDroppable,
   DragEndEvent,
   DragStartEvent,
+  TouchSensor,
+  MouseSensor,
+  useSensor,
+  useSensors,
 } from '@dnd-kit/core';
 
 interface MissingLetterGameProps {
@@ -34,7 +38,7 @@ function DraggableMissingLetter({ letter, index, disabled }: { letter: string, i
       ref={setNodeRef}
       {...listeners}
       {...attributes}
-      className={`w-20 h-20 text-4xl font-bold rounded-xl transition-all duration-200 cursor-pointer select-none ${
+      className={`draggable-element w-20 h-20 text-4xl font-bold rounded-xl transition-all duration-200 cursor-pointer select-none ${
         disabled 
           ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
           : isDragging
@@ -83,6 +87,22 @@ function MissingLetterSlot({ isDropZone }: { isDropZone: boolean }) {
 export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onLetterSelect, disabled }: MissingLetterGameProps) {
   const { playLetterSound, playTryAgain } = useAudio();
   const [activeId, setActiveId] = useState<string | null>(null);
+
+  // Configure sensors for better touch support
+  const mouseSensor = useSensor(MouseSensor, {
+    activationConstraint: {
+      distance: 8,
+    },
+  });
+
+  const touchSensor = useSensor(TouchSensor, {
+    activationConstraint: {
+      delay: 200,
+      tolerance: 8,
+    },
+  });
+
+  const sensors = useSensors(mouseSensor, touchSensor);
   
   const wordArray = word.word.split('');
   const correctLetter = wordArray[missingLetterIndex];
@@ -136,7 +156,7 @@ export function MissingLetterGame({ word, letterOptions, missingLetterIndex, onL
   const activeItem = getActiveItem();
 
   return (
-    <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="flex flex-col items-center space-y-8">
         {/* Picture and Speaker */}
         <div className="text-center">

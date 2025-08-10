@@ -49,11 +49,15 @@
 
 ### Drag and Drop Implementation
 - **Library**: Use @dnd-kit/core for all drag-and-drop functionality
-- **Compatibility**: Ensures proper touch support on iPad and mobile devices
+- **Touch Support**: 
+  - TouchSensor with 200ms delay and 8px tolerance for iPad/mobile
+  - MouseSensor with 8px distance activation for desktop
+  - CSS: `touch-action: none` and disabled user selection on draggable elements
 - **Components**: 
   - SpellWordGame: Letter placement with drag-and-drop
   - ExtraLetterGame: Drag letters to trash
   - MissingLetterGame: Drag letters to fill gaps
+- **CSS Class**: `.draggable-element` applied to all draggable items
 
 ### Code Organization
 - **Shared Constants**: All emoji mappings in `client/src/lib/constants.ts`
