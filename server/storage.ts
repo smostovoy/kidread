@@ -257,15 +257,44 @@ export class DatabaseStorage implements IStorage {
   async getRandomWords(excludeId: string, count: number): Promise<Word[]> {
     await this.ensureInitialized();
     
+    // First get the word we're excluding to know its emoji
+    const excludedWord = await db
+      .select()
+      .from(words)
+      .where(eq(words.id, excludeId))
+      .limit(1);
+    
+    const excludedImage = excludedWord[0]?.image;
+    
+    // Get more words than needed to account for filtering
     const allWords = await db
       .select()
       .from(words)
       .where(sql`${words.id} != ${excludeId}`)
       .orderBy(sql`RANDOM()`)
-      .limit(count * 3); // Get more words to account for filtering
+      .limit(count * 5); // Get even more words to account for duplicate emoji filtering
 
+    // Filter out blacklisted words
     const filteredWords = this.filterBlacklistedWords(allWords);
-    return filteredWords.slice(0, count); // Return only the requested count
+    
+    // Filter out words with duplicate emojis
+    const seenImages = new Set<string>();
+    if (excludedImage) {
+      seenImages.add(excludedImage);
+    }
+    
+    const uniqueEmojiWords: Word[] = [];
+    for (const word of filteredWords) {
+      if (!seenImages.has(word.image)) {
+        seenImages.add(word.image);
+        uniqueEmojiWords.push(word);
+        if (uniqueEmojiWords.length >= count) {
+          break;
+        }
+      }
+    }
+    
+    return uniqueEmojiWords;
   }
 }
 

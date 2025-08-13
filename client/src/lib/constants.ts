@@ -20,7 +20,7 @@ export const PICTURE_EMOJIS: Record<string, string> = {
   'chair': '🪑',
   'window': '🪟',
   'door': '🚪',
-  'lamp': '🪔',
+  'lamp': '💡',
   'flower': '🌸',
   'car': '🚗',
   'tree': '🌳',
@@ -73,9 +73,43 @@ export const PICTURE_EMOJIS: Record<string, string> = {
   // Places
   'school': '🏫',
   'park': '🏞️',
+  'store': '🏪',
+  'hospital': '🏥',
+  'theater': '🎭',
+  'museum': '🏛️',
+  'market': '🏪',
   
   // Activities
-  'game': '🎮'
+  'game': '🎮',
+  
+  // Objects & Furniture (additional)
+  'table': '🪑',
+  
+  // Family (additional mappings)
+  'mother': '👩',
+  'father': '👨',
+  'uncle': '👨',
+  'aunt': '👩',
+  'brother': '👦',
+  'sister': '👧',
+  'grandfather': '👴',
+  'grandmother': '👵',
+  
+  // Nature (additional)
+  'water': '💧',
+  'fire': '🔥',
+  'earth': '🌍',
+  'sky': '☁️',
+  'wind': '💨',
+  'summer': '☀️',
+  'winter': '❄️',
+  'spring': '🌸',
+  'autumn': '🍂',
+  'morning': '🌅',
+  'day': '☀️',
+  'evening': '🌆',
+  'night': '🌙',
+  
 } as const;
 
 export const CELEBRATION_MESSAGES = [
